@@ -1,0 +1,14 @@
+<ul>
+  <% for (const file of files) { %>
+    <% const title = (file.isDir ? 'C' : `${file.size} b; c`) + `reated ${file.created.toLocaleString()}, modified ${file.modified.toLocaleString()}` %>
+    <li>
+      <% if (file.isDir) { %>
+        <details data-dir="<%= baseUrl %><%= file.name %>/" ontoggle="window.onToggle(this)">
+          <summary><a href="<%= baseUrl %><%= file.name %>/" title="<%= title %>"><%= file.name %></a></summary>
+        </details>
+      <% } else { %>
+        <a href="<%= baseUrl %><%= file.name %>" title="<%= title %>"><%= file.name %></a>
+      <% } %>
+    </li>
+  <% } %>
+</ul>

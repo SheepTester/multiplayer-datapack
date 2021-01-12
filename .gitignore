@@ -1,6 +1,9 @@
 # Webpack build output
 build
 
+# Datapack files for testing purposes
+data
+
 # Logs
 logs
 *.log
