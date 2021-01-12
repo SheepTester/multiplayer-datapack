@@ -1,0 +1,27 @@
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  display: flex;
+  font-family: 'Fira Code', monospace;
+  overflow: hidden;
+}
+button,
+input,
+select,
+textarea {
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+#container {
+  flex: auto;
+  overflow: hidden;
+}
