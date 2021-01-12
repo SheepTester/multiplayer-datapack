@@ -10,6 +10,10 @@
     <script src="/static/directory.js" charset="utf-8"></script>
   </head>
   <body>
+    <form class="" action="?action=create" method="post">
+      <label>File name<input type="text" name="name"></label>
+      <input type="submit" value="create">
+    </form>
     <%- include('directory', { files, baseUrl }) %>
   </body>
 </html>

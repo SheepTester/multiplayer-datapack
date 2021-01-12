@@ -78,3 +78,8 @@ editor.addAction({
     }))
   },
 })
+
+// const fileList = notNull(document.getElementById('file-list'))
+// window.addEventListener('message', e => {
+//   window.location.href = e.data
+// })

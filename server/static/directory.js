@@ -8,3 +8,13 @@ window.onToggle = function onToggle (details) {
       })
   }
 }
+
+const url = new URL(window.location)
+if (url.searchParams.get('sidebar')) {
+  document.addEventListener('click', e => {
+    if (e.target.closest('a')) {
+      window.parent.postMessage(e.target.href)
+      e.preventDefault()
+    }
+  })
+}
