@@ -1,13 +1,19 @@
 <ul>
-  <% for (const file of files) { %>
-    <% const title = (file.isDir ? 'C' : `${file.size} b; c`) + `reated ${file.created.toLocaleString()}, modified ${file.modified.toLocaleString()}` %>
+  <% for (const { valid, name, isDir, size, created, modified } of files) { %>
+    <% const title = (isDir ? 'C' : `${size} b; c`) + `reated ${created.toLocaleString()}, modified ${modified.toLocaleString()}` %>
     <li>
-      <% if (file.isDir) { %>
-        <details data-dir="<%= baseUrl %><%= file.name %>/" ontoggle="window.onToggle(this)">
-          <summary><a href="<%= baseUrl %><%= file.name %>/" title="<%= title %>"><%= file.name %></a></summary>
+      <% if (isDir) { %>
+        <details data-dir="<%= baseUrl %><%= name %>/" ontoggle="window.onToggle(this)">
+          <summary>
+            <a href="<%= baseUrl %><%= name %>/" title="<%= title %>">
+              <%= name %>
+            </a>
+          </summary>
         </details>
       <% } else { %>
-        <a href="<%= baseUrl %><%= file.name %>" title="<%= title %>"><%= file.name %></a>
+        <% if (valid) { %><a href="<%= baseUrl %><%= name %>" title="<%= title %>"><% } %>
+          <%= name %>
+        <% if (valid) { %></a><% } %>
       <% } %>
     </li>
   <% } %>

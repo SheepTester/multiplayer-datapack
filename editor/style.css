@@ -21,7 +21,11 @@ button:not(:disabled) {
   cursor: pointer;
 }
 
-#container {
+.files {
+  border: none;
+  width: 200px;
+}
+.editor {
   flex: auto;
   overflow: hidden;
 }
