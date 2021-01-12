@@ -3,7 +3,7 @@ import fs from 'fs/promises'
 import express from 'express'
 import asyncHandler from 'express-async-handler'
 
-import { port, baseDir, safeExtensions } from './args'
+import { port, baseDir, safeExtensions, debugUrl } from './args'
 
 const app = express()
 app.set('views', path.resolve(__dirname, './views'))
@@ -12,10 +12,17 @@ app.set('view options', {
 })
 app.set('view engine', 'ejs')
 
+if (debugUrl) {
+  const url = debugUrl
+  app.get('/bundle.js', (_req, res) => {
+    res.redirect(url)
+  })
+}
+
 app.use(express.static(path.resolve(__dirname, '../build')))
 app.use('/static', express.static(path.resolve(__dirname, './static/')))
 
-app.get('/', (req, res) => {
+app.get('/', (_req, res) => {
   res.render('editor')
 })
 

@@ -4,12 +4,14 @@ const {
   port: portString = '8080',
   base = './data/',
   extensions = '.mcfunction,.json,.mcmeta',
+  debug = null,
   help = false,
 } = minimist(process.argv.slice(2), {
   string: [
     'port',
     'base',
     'extensions',
+    'debug',
   ],
   boolean: [
     'help',
@@ -33,3 +35,4 @@ export const safeExtensions: RegExp = new RegExp(
     .replace(/\./g, '\\.')
     .replace(/,/g, '|')
 )
+export const debugUrl: string | null = debug

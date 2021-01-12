@@ -26,6 +26,7 @@ const editor = monaco.editor.create(notNull(document.getElementById('container')
   tabSize: 4,
   insertSpaces: false,
 })
+console.log('hello')
 console.log(editor)
 editor.onDidChangeModelContent(e => {
   console.log(e)
