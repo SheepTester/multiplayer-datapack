@@ -1,5 +1,5 @@
 import path from 'path'
-import fs from 'fs/promises'
+import fs from 'fs-extra'
 import express from 'express'
 import expressWs from 'express-ws'
 import asyncHandler from 'express-async-handler'
@@ -37,12 +37,23 @@ app.get('/files/*', asyncHandler(async (req, res) => {
     base: baseUrl = './',
   } = req.query
   const filePath = path.resolve(baseDir, '.' + req.path.replace(/^\/files/, ''))
-  const [exists, isDir] = await fs.lstat(filePath)
+  let [exists, isDir] = await fs.lstat(filePath)
     .then(stat => [true, stat.isDirectory()])
     .catch(() => [false, false])
   if (!exists) {
-    res.status(404).send('File/directory not found')
-  } else if (isDir) {
+    isDir = req.path.endsWith('/')
+    if (isDir) {
+      await fs.ensureDir(filePath)
+    } else if (safeExtensions.test(filePath)) {
+      // There better be a slash in filePath
+      const dirName = path.dirname(filePath)
+      await fs.ensureDir(dirName)
+      await fs.writeFile(filePath, '')
+    } else {
+      return res.status(404).send('file doesn\'t exist and that extension isn\'t allowed')
+    }
+  }
+  if (isDir) {
     const files = []
     for (const fileName of await fs.readdir(filePath)) {
       const totalPath = path.resolve(filePath, fileName)
