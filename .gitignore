@@ -4,6 +4,9 @@ build
 # Datapack files for testing purposes
 data
 
+# Deleted files
+deleted
+
 # Logs
 logs
 *.log

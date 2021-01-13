@@ -7,6 +7,7 @@ body {
   display: flex;
   font-family: 'Fira Code', monospace;
   overflow: hidden;
+  background-color: black;
 }
 button,
 input,
@@ -21,10 +22,19 @@ button:not(:disabled) {
   cursor: pointer;
 }
 
-.files {
-  border: none;
-  width: 200px;
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 300px;
 }
+.files {
+  flex: auto;
+  border: none;
+}
+.delete-btn {
+  color: red;
+}
+
 .editor {
   flex: auto;
   overflow: hidden;

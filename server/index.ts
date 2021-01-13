@@ -32,11 +32,15 @@ app.get('/files/*', asyncHandler(async (req, res) => {
     return res.status(401).send('can\'t edit hidden files')
   }
   const {
+    create: createPath,
     file: sendFile,
     component: asComponent,
     base: baseUrl = './',
     sidebar: sidebarMode,
   } = req.query
+  if (createPath) {
+    return res.redirect(typeof createPath === 'string' ? createPath : './')
+  }
   const filePath = path.resolve(baseDir, '.' + req.path.replace(/^\/files/, ''))
   let [exists, isDir] = await fs.lstat(filePath)
     .then(stat => [true, stat.isDirectory()])
@@ -49,12 +53,14 @@ app.get('/files/*', asyncHandler(async (req, res) => {
       // There better be a slash in filePath
       const dirName = path.dirname(filePath)
       await fs.ensureDir(dirName)
-      await fs.writeFile(filePath, '')
     } else {
       return res.status(404).send('file doesn\'t exist and that extension isn\'t allowed')
     }
   }
   if (isDir) {
+    if (!req.path.endsWith('/')) {
+      return res.redirect(req.path + '/')
+    }
     const files = []
     for (const fileName of await fs.readdir(filePath)) {
       const totalPath = path.resolve(filePath, fileName)
@@ -83,16 +89,50 @@ app.get('/files/*', asyncHandler(async (req, res) => {
         files,
         baseUrl,
         sidebar: !!sidebarMode,
+        topLevel: req.path === '/files/',
       })
     }
   } else if (safeExtensions.test(filePath)) {
+    if (req.path.endsWith('/')) {
+      return res.redirect(req.path.replace(/\/+$/, ''))
+    }
     if (sendFile) {
       res.sendFile(filePath)
     } else {
-      res.render('editor', {})
+      res.render('editor', {
+        newFile: !exists,
+      })
     }
   } else {
     res.status(401).send('can\'t edit files of this extension')
+  }
+}))
+
+app.delete('/files/*', asyncHandler(async (req, res) => {
+  if (req.path.includes('/.')) {
+    return res.status(401).send('can\'t delete hidden files')
+  }
+  const filePath = path.resolve(baseDir, '.' + req.path.replace(/^\/files/, ''))
+  let [exists, isDir] = await fs.lstat(filePath)
+    .then(stat => [true, stat.isDirectory()])
+    .catch(() => [false, false])
+  if (!exists) {
+    return res.status(404).send('file doesn\'t exist')
+  }
+  if (isDir) {
+    if ((await fs.readdir(filePath)).length) {
+      return res.status(403).send('can\'t delete nonempty directories')
+    } else {
+      await fs.rmdir(filePath)
+      res.send('ok')
+    }
+  } else if (safeExtensions.test(filePath)) {
+    await fs.move(filePath, path.resolve(__dirname, '../deleted' + req.path.replace(/^\/files/, '')), {
+      overwrite: true
+    })
+    res.send('ok')
+  } else {
+    res.status(401).send('can\'t delete files of this extension')
   }
 }))
 
@@ -110,18 +150,13 @@ wsApp.ws('/wuss', async (ws, req) => {
   const filePath = path.resolve(baseDir, '.' + from.replace(/^\/files/, ''))
   let connsTemp = connections.get(from)
   if (!connsTemp) {
-    try {
-      const file = await fs.readFile(filePath, 'utf8')
-      connsTemp = {
-        connections: new Set(),
-        file,
-      }
-      connections.set(from, connsTemp)
-    } catch (err) {
-      console.error(err)
-      ws.close()
-      return
+    const file = await fs.readFile(filePath, 'utf8')
+      .catch(() => '')
+    connsTemp = {
+      connections: new Set(),
+      file,
     }
+    connections.set(from, connsTemp)
   }
   const conns = connsTemp // dumb typescript
   conns.connections.add(ws)

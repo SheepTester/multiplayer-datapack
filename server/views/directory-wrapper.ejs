@@ -13,6 +13,15 @@
     <script src="/static/directory.js" charset="utf-8"></script>
   </head>
   <body>
+    <% if (!sidebar) { %>
+      <form action="./" method="get">
+        <label>Path <input type="text" name="create"></label>
+        <input type="submit" value="Create">
+      </form>
+    <% } %>
+    <% if (!topLevel) {%>
+      <p class="parent-folder"><a href="../" class="parent-folder-link">..</a></p>
+    <% } %>
     <%- include('directory', { files, baseUrl, sidebar }) %>
   </body>
 </html>

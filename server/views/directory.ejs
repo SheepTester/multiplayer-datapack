@@ -36,5 +36,8 @@
     <% } %>
   </ul>
 <% } else { %>
-  <p class="empty-dir">Directory is empty</p>
+  <p class="empty-dir">
+    empty
+    <button class="delete-btn" data-delete="<%= baseUrl %>">delete</button>
+  </p>
 <% } %>

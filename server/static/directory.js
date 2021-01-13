@@ -15,11 +15,20 @@ window.onToggle = function onToggle (details) {
   }
 }
 
-if (url.searchParams.get('sidebar')) {
-  document.addEventListener('click', e => {
-    if (e.target.closest('a')) {
-      window.parent.postMessage(e.target.href)
-      e.preventDefault()
-    }
-  })
-}
+document.addEventListener('click', e => {
+  if (url.searchParams.get('sidebar') && e.target.closest('a')) {
+    window.parent.postMessage(e.target.href)
+    e.preventDefault()
+    return
+  }
+  const deleteBtn = e.target.closest('.delete-btn')
+  if (deleteBtn) {
+    deleteBtn.disabled = true
+    fetch(deleteBtn.dataset.delete, {
+      method: 'DELETE'
+    }).then(response => {
+      deleteBtn.disabled = false
+      alert(response.ok ? 'deleted.' : 'failed to delete lol')
+    })
+  }
+})

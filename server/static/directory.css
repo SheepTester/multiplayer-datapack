@@ -3,9 +3,21 @@ body {
   display: flex;
   flex-direction: column;
   font-family: 'Fira Code', monospace;
-  overflow: hidden;
   background-color: #191121;
   color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+}
+button,
+input,
+select,
+textarea {
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+button:not(:disabled) {
+  cursor: pointer;
 }
 
 .files {
@@ -34,9 +46,25 @@ body {
 .file-invalid {
   color: rgba(255, 255, 255, 0.2);
 }
+
+.parent-folder {
+  margin: 0;
+  padding: 10px;
+}
+.parent-folder-link {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  text-decoration: none;
+  color: inherit;
+}
+
 .empty-dir {
   color: rgba(255, 255, 255, 0.3);
   font-style: italic;
   margin: 0;
   padding-left: 30px;
+}
+.delete-btn {
+  font-style: normal;
+  color: red;
 }

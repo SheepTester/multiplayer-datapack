@@ -4,20 +4,20 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>datapack editor</title>
+    <title>datapack editor<%= newFile ? ' (new)' : '' %></title>
 
     <link rel="preconnect" href="https://fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
 
-    <style media="screen">
-      body {
-        background-color: black;
-      }
-    </style>
+    <link rel="stylesheet" href="/static/editor.css">
   </head>
   <body>
-    <iframe src="/files/?sidebar=true" class="files" id="file-list"></iframe>
+    <div class="sidebar">
+      <iframe src="/files/?sidebar=true" class="files" id="file-list"></iframe>
+      <button class="delete-btn" id="delete">delete</button>
+    </div>
     <div class="editor" id="container"></div>
+    <script src="/static/editor.js" charset="utf-8"></script>
     <script src="/bundle.js" charset="utf-8"></script>
   </body>
 </html>

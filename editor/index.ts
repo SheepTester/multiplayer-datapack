@@ -1,5 +1,3 @@
-import './style.css'
-
 import * as monaco from 'monaco-editor'
 
 function notNull<T> (value: T | null | undefined): T {
@@ -41,16 +39,6 @@ wsUrl.protocol = wsUrl.protocol === 'https' ? 'wss' : 'ws'
 wsUrl.searchParams.set('from', window.location.pathname)
 const ws = new WebSocket(wsUrl.toString())
 
-/*
-ws.addEventListener('open', () => {
-  editor.onDidChangeModelContent(e => {
-    ws.send(JSON.stringify({
-      type: 'changes',
-      changes: e.changes,
-    }))
-  })
-})
-*/
 ws.addEventListener('message', e => {
   const { type, ...data } = JSON.parse(e.data)
   switch (type) {
@@ -65,6 +53,21 @@ ws.addEventListener('message', e => {
   }
 })
 
+let changed = false
+editor.onDidChangeModelContent(e => {
+  // isFlush seems to mean that it's from setValue
+  // https://github.com/microsoft/monaco-editor/issues/432#issuecomment-749198333
+  if (!e.isFlush) {
+    if (!changed) {
+      changed = true
+      document.title = 'datapack editor*'
+    }
+    // ws.send(JSON.stringify({
+    //   type: 'changes',
+    //   changes: e.changes,
+    // }))
+  }
+})
 editor.addAction({
   id: 'save',
   label: 'Save to server',
@@ -76,7 +79,17 @@ editor.addAction({
       type: 'file',
       file: model.getValue(),
     }))
+    if (changed) {
+      changed = false
+      document.title = 'datapack editor'
+    }
   },
+})
+window.addEventListener('beforeunload', e => {
+  if (changed) {
+    e.preventDefault()
+    e.returnValue = ''
+  }
 })
 
 // const fileList = notNull(document.getElementById('file-list'))
