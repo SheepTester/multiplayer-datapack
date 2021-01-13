@@ -17,7 +17,13 @@ Monaco editor.
     npm install
     ```
 
-2. Create a password
+2. Set the password by creating a `.env` file containing
+
+    ```
+    PASSWORD=your password here
+    ```
+
+    where `your password here` is the password people should enter in order to be able to access the files. The security right now is pretty lame, so your life shouldn't depend on this.
 
 3. Build the editor.
 
