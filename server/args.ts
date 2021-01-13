@@ -25,7 +25,13 @@ const {
 })
 
 if (help) {
-  console.log('TODO: help')
+  console.log('npm start -- [options]')
+  console.log('Options:')
+  console.log('--port <port> (-p <port>)\n\tSets the port for the server. (Default: 8080)')
+  console.log('--base <path> (-b <path>)\n\tSpecify the path to the directory containing the datapack files you want to make editable. (Default: data/)')
+  console.log('--extensions <exts> (-e <exts>)\n\tA comma-separated list of file extensions that can be edited. (Default: .mcfunction,.json,.mcmeta)')
+  console.log('--help (-h)\n\tShow help and exit')
+  process.exit()
 }
 
 export const port: number = +portString
