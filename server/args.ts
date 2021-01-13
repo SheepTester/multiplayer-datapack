@@ -36,4 +36,4 @@ export const safeExtensions: RegExp = new RegExp(
     .replace(/,/g, '|')
     + '$'
 )
-export const debugUrl: string | null = debug
+export const debugSrc: string | null = debug

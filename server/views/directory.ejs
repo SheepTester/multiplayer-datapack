@@ -1,20 +1,40 @@
-<ul>
-  <% for (const { valid, name, isDir, size, created, modified } of files) { %>
-    <% const title = (isDir ? 'C' : `${size} b; c`) + `reated ${created.toLocaleString()}, modified ${modified.toLocaleString()}` %>
-    <li>
-      <% if (isDir) { %>
-        <details data-dir="<%= baseUrl %><%= name %>/" ontoggle="window.onToggle(this)">
-          <summary>
-            <a href="<%= baseUrl %><%= name %>/" title="<%= title %>">
-              <%= name %>
+<% if (files.length) { %>
+  <ul class="files">
+    <% for (const { valid, name, isDir, size, created, modified } of files) { %>
+      <% const title = (isDir ? 'C' : `${size} b; c`) + `reated ${created.toLocaleString()}, modified ${modified.toLocaleString()}` %>
+      <li class="file-entry <%= isDir ? 'directory' : 'file' %>">
+        <% if (isDir) { %>
+          <details data-dir="<%= baseUrl %><%= name %>/" ontoggle="window.onToggle(this)">
+            <summary class="link-wrapper">
+              <% if (sidebar) { %>
+                <span class="directory-name">
+              <% } else { %>
+                <a class="file-link" href="<%= baseUrl %><%= name %>/" title="<%= title %>">
+              <% } %>
+                <%= name %>
+              <% if (sidebar) { %>
+                </span>
+              <% } else { %>
+                </a>
+              <% } %>
+            </summary>
+          </details>
+        <% } else { %>
+          <% if (valid) { %>
+            <a class="file-link" href="<%= baseUrl %><%= name %>" title="<%= title %>">
+          <% } else { %>
+            <span class="file-invalid">
+          <% } %>
+            <%= name %>
+          <% if (valid) { %>
             </a>
-          </summary>
-        </details>
-      <% } else { %>
-        <% if (valid) { %><a href="<%= baseUrl %><%= name %>" title="<%= title %>"><% } %>
-          <%= name %>
-        <% if (valid) { %></a><% } %>
-      <% } %>
-    </li>
-  <% } %>
-</ul>
+          <% } else { %>
+            </span>
+          <% } %>
+        <% } %>
+      </li>
+    <% } %>
+  </ul>
+<% } else { %>
+  <p class="empty-dir">Directory is empty</p>
+<% } %>

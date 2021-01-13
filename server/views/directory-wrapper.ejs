@@ -6,10 +6,13 @@
 
     <title>directory</title>
 
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&display=swap" rel="stylesheet">
+
     <link rel="stylesheet" href="/static/directory.css">
     <script src="/static/directory.js" charset="utf-8"></script>
   </head>
   <body>
-    <%- include('directory', { files, baseUrl }) %>
+    <%- include('directory', { files, baseUrl, sidebar }) %>
   </body>
 </html>

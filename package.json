@@ -1,6 +1,6 @@
 {
   "name": "multiplayer-datapack",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Hosts an HTTP server for collaborative Minecraft datapack editing using the Monaco editor",
   "main": "index.js",
   "scripts": {

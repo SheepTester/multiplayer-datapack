@@ -5,7 +5,7 @@ import expressWs from 'express-ws'
 import asyncHandler from 'express-async-handler'
 import WebSocket from 'ws'
 
-import { port, baseDir, safeExtensions, debugUrl } from './args'
+import { port, baseDir, safeExtensions, debugSrc } from './args'
 
 const app = express()
 app.set('views', path.resolve(__dirname, './views'))
@@ -16,15 +16,15 @@ app.set('view engine', 'ejs')
 // https://stackoverflow.com/a/51476990
 const { app: wsApp } = expressWs(app)
 
-if (debugUrl) {
-  const url = debugUrl
-  app.get('/bundle.js', (_req, res) => {
-    res.redirect(url)
+if (debugSrc) {
+  const url = debugSrc
+  app.get('/*bundle.js', (req, res) => {
+    res.redirect(url + req.path)
   })
 }
 
 app.get('/', (_req, res) => {
-  res.render('editor')
+  res.render('index')
 })
 
 app.get('/files/*', asyncHandler(async (req, res) => {
@@ -35,6 +35,7 @@ app.get('/files/*', asyncHandler(async (req, res) => {
     file: sendFile,
     component: asComponent,
     base: baseUrl = './',
+    sidebar: sidebarMode,
   } = req.query
   const filePath = path.resolve(baseDir, '.' + req.path.replace(/^\/files/, ''))
   let [exists, isDir] = await fs.lstat(filePath)
@@ -69,15 +70,19 @@ app.get('/files/*', asyncHandler(async (req, res) => {
         size: file.size,
       })
     }
+    // Sort directories first, then sort directories/files alphabetically.
+    files.sort((a, b) => +b.isDir - +a.isDir || a.name.localeCompare(b.name))
     if (asComponent) {
       res.render('directory', {
         files,
         baseUrl,
+        sidebar: !!sidebarMode,
       })
     } else {
       res.render('directory-wrapper', {
         files,
         baseUrl,
+        sidebar: !!sidebarMode,
       })
     }
   } else if (safeExtensions.test(filePath)) {
@@ -98,7 +103,7 @@ interface Connections {
 const connections: Map<string, Connections> = new Map()
 wsApp.ws('/wuss', async (ws, req) => {
   const { from } = req.query
-  if (typeof from !== 'string') {
+  if (typeof from !== 'string' || !from.startsWith('/files/')) {
     ws.close()
     return
   }
