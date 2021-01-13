@@ -21,6 +21,7 @@
   "homepage": "https://github.com/SheepTester/multiplayer-datapack#readme",
   "devDependencies": {
     "@tsconfig/recommended": "^1.0.1",
+    "@types/cookie-session": "^2.0.42",
     "@types/express": "^4.17.10",
     "@types/express-ws": "^3.0.0",
     "@types/fs-extra": "^9.0.6",
@@ -36,6 +37,7 @@
     "webpack-dev-server": "^3.11.1"
   },
   "dependencies": {
+    "cookie-session": "^1.4.0",
     "ejs": "^3.1.5",
     "express": "^4.17.1",
     "express-async-handler": "^1.1.4",

@@ -3,9 +3,11 @@ import fs from 'fs-extra'
 import express from 'express'
 import expressWs from 'express-ws'
 import asyncHandler from 'express-async-handler'
+import cookieSession from 'cookie-session'
 import WebSocket from 'ws'
 
 import { port, baseDir, safeExtensions, debugSrc } from './args'
+import { randomId } from './utils'
 
 const app = express()
 app.set('views', path.resolve(__dirname, './views'))
@@ -13,6 +15,10 @@ app.set('view options', {
   rmWhitespace: true
 })
 app.set('view engine', 'ejs')
+app.use(cookieSession({
+  name: 'session',
+  keys: ['idk lol']
+}))
 // https://stackoverflow.com/a/51476990
 const { app: wsApp } = expressWs(app)
 
@@ -22,6 +28,59 @@ if (debugSrc) {
     res.redirect(url + req.path)
   })
 }
+
+interface Request {
+  message: string
+  status: 'denied' | 'unset' | 'accepted'
+}
+function isRequest (value: any): value is Request {
+  return value && typeof value === 'object'
+    && typeof value.status === 'string'
+    && ['denied', 'unset', 'accepted'].includes(value.message)
+}
+function isRequestsJson (value: any): value is { [key: string]: Request | undefined } {
+  return value && typeof value === 'object'
+    && Object.values(value).every(isRequest)
+}
+const requestsJsonPath = path.resolve(__dirname, '../requests.json')
+const requestsJson: Promise<{ [key: string]: Request | undefined }> = fs.readFile(requestsJsonPath, 'utf8')
+  .then(JSON.parse)
+  .then(json => {
+    if (isRequestsJson(json)) {
+      return json
+    } else {
+      return {}
+    }
+  })
+  .catch(() => ({}))
+
+app.use(asyncHandler(async (req, res, next) => {
+  if (!req.session) throw new Error('session should exist')
+  const requests = await requestsJson
+  if (!req.session.id) {
+    req.session.id = randomId()
+  }
+  let request = requests[req.session.id]
+  if (!request) {
+    request = {
+      message: '',
+      status: 'unset',
+    }
+    requests[req.session.id] = request
+  }
+  if (request.status === 'accepted') {
+    return next()
+  }
+  if (typeof req.query['set-message'] === 'string' && req.query['set-message'] !== request.message) {
+    request.message = req.query['set-message']
+    await fs.writeFile(requestsJsonPath, JSON.stringify(requests))
+    // Will remove other URL parameters, unfortunately
+    return res.redirect(req.path)
+  }
+  res.render('permission-needed', {
+    message: request.message,
+  })
+}))
 
 app.get('/', (_req, res) => {
   res.render('index')

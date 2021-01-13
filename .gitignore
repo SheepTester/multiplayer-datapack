@@ -7,6 +7,9 @@ data
 # Deleted files
 deleted
 
+# Requests
+requests.json
+
 # Logs
 logs
 *.log
