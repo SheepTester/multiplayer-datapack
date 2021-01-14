@@ -1,0 +1,48 @@
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  display: flex;
+  font-family: 'Fira Code', monospace;
+  overflow: hidden;
+  background-color: black;
+  color: white;
+}
+button,
+input,
+select,
+textarea {
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+button:not(:disabled) {
+  cursor: pointer;
+}
+
+#root {
+  flex: auto;
+  display: flex;
+}
+
+.files-list {
+  background-color: #111;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  overflow: auto;
+  width: 350px;
+}
+.file-items {
+  display: flex;
+  flex-direction: column;
+}
+.folder-name,
+.file {
+  text-align: left;
+}
+.folder-contents {
+  padding-left: 20px;
+}

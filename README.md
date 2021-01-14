@@ -40,7 +40,7 @@ Monaco editor.
 4. Start the server.
 
     ```sh
-    npm start -- -b path/to/datapack/folder
+    npm start -- -b path/to/datapack/folder -p 10068
     ```
 
     You can do `npm start -- --help` for a list of options.

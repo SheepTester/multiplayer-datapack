@@ -1,4 +1,4 @@
-import path from 'path'
+import nodePath from 'path'
 import fs from 'fs-extra'
 import { config } from 'dotenv'
 import express from 'express'
@@ -12,7 +12,7 @@ config()
 import { port, baseDir, safeExtensions, debugSrc } from './args'
 
 const app = express()
-app.set('views', path.resolve(__dirname, './views'))
+app.set('views', nodePath.resolve(__dirname, './views'))
 app.set('view options', {
   rmWhitespace: true
 })
@@ -23,6 +23,56 @@ app.use(cookieSession({
 }))
 // https://stackoverflow.com/a/51476990
 const { app: wsApp } = expressWs(app)
+
+type FolderContents<T> = { [name: string]: T }
+
+class Folder {
+  path: string
+  folders: FolderContents<Folder>
+  files: FolderContents<string>
+  parent: Folder | null
+
+  constructor (
+    path: string,
+    folders: FolderContents<Folder> = {},
+    files: FolderContents<string> = {},
+    parent: Folder | null = null,
+  ) {
+    this.path = path
+    this.folders = folders
+    this.files = files
+    this.parent = parent
+  }
+
+  async scan (): Promise<this> {
+    this.folders = {}
+    this.files = {}
+    for (const name of await fs.readdir(this.path)) {
+      if (name.startsWith('.')) continue
+      const totalPath = nodePath.resolve(this.path, name)
+      const file = await fs.lstat(totalPath)
+      if (file.isDirectory()) {
+        this.folders[name] = await new Folder(totalPath, {}, {}, this).scan()
+      } else {
+        this.files[name] = totalPath
+      }
+    }
+    return this
+  }
+
+  toJSON (): any {
+    return {
+      folders: Object.entries(this.folders)
+        .map(([name, folder]): [string, any] => [name, folder.toJSON()])
+        .sort((a, b) => a[0].localeCompare(b[0])),
+      files: Object.keys(this.files)
+        .sort()
+        .map(name => [name, safeExtensions.test(name)]),
+    }
+  }
+}
+
+const folders = new Folder(baseDir).scan()
 
 if (debugSrc) {
   const url = debugSrc
@@ -61,7 +111,7 @@ app.get('/files/*', asyncHandler(async (req, res) => {
   if (createPath) {
     return res.redirect(typeof createPath === 'string' ? createPath : './')
   }
-  const filePath = path.resolve(baseDir, '.' + req.path.replace(/^\/files/, ''))
+  const filePath = nodePath.resolve(baseDir, '.' + req.path.replace(/^\/files/, ''))
   let [exists, isDir] = await fs.lstat(filePath)
     .then(stat => [true, stat.isDirectory()])
     .catch(() => [false, false])
@@ -71,7 +121,7 @@ app.get('/files/*', asyncHandler(async (req, res) => {
       await fs.ensureDir(filePath)
     } else if (safeExtensions.test(filePath)) {
       // There better be a slash in filePath
-      const dirName = path.dirname(filePath)
+      const dirName = nodePath.dirname(filePath)
       await fs.ensureDir(dirName)
     } else {
       return res.status(404).send('file doesn\'t exist and that extension isn\'t allowed')
@@ -83,7 +133,7 @@ app.get('/files/*', asyncHandler(async (req, res) => {
     }
     const files = []
     for (const fileName of await fs.readdir(filePath)) {
-      const totalPath = path.resolve(filePath, fileName)
+      const totalPath = nodePath.resolve(filePath, fileName)
       const file = await fs.lstat(totalPath)
       if (fileName.startsWith('.')) continue
       const isDir = file.isDirectory()
@@ -128,81 +178,17 @@ app.get('/files/*', asyncHandler(async (req, res) => {
   }
 }))
 
-app.delete('/files/*', asyncHandler(async (req, res) => {
-  if (req.path.includes('/.')) {
-    return res.status(401).send('can\'t delete hidden files')
-  }
-  const filePath = path.resolve(baseDir, '.' + req.path.replace(/^\/files/, ''))
-  let [exists, isDir] = await fs.lstat(filePath)
-    .then(stat => [true, stat.isDirectory()])
-    .catch(() => [false, false])
-  if (!exists) {
-    return res.status(404).send('file doesn\'t exist')
-  }
-  if (isDir) {
-    if ((await fs.readdir(filePath)).length) {
-      return res.status(403).send('can\'t delete nonempty directories')
-    } else {
-      await fs.rmdir(filePath)
-      res.send('ok')
-    }
-  } else if (safeExtensions.test(filePath)) {
-    await fs.move(filePath, path.resolve(__dirname, '../deleted' + req.path.replace(/^\/files/, '')), {
-      overwrite: true
-    })
-    res.send('ok')
-  } else {
-    res.status(401).send('can\'t delete files of this extension')
-  }
-}))
-
-interface Connections {
-  connections: Set<WebSocket>
-  file: string
-}
-const connections: Map<string, Connections> = new Map()
+const connections: Set<WebSocket> = new Set()
 wsApp.ws('/wuss', async (ws, req) => {
-  const { from } = req.query
-  if (typeof from !== 'string' || !from.startsWith('/files/')) {
-    ws.close()
-    return
-  }
-  const filePath = path.resolve(baseDir, '.' + from.replace(/^\/files/, ''))
-  let connsTemp = connections.get(from)
-  if (!connsTemp) {
-    const file = await fs.readFile(filePath, 'utf8')
-      .catch(() => '')
-    connsTemp = {
-      connections: new Set(),
-      file,
-    }
-    connections.set(from, connsTemp)
-  }
-  const conns = connsTemp // dumb typescript
-  conns.connections.add(ws)
+  connections.add(ws)
   ws.send(JSON.stringify({
-    type: 'file',
-    file: conns.file,
+    type: 'folders',
+    folders: await folders,
   }))
   ws.on('message', async msg => {
     try {
       const { type, ...data } = JSON.parse(msg.toString())
       switch (type) {
-        case 'changes': {
-          for (const conn of conns.connections) {
-            if (conn !== ws) {
-              conn.send(JSON.stringify({
-                type: 'changes',
-                changes: data.changes,
-              }))
-            }
-          }
-          break
-        }
-        case 'file': {
-          await fs.writeFile(filePath, data.file)
-          break
-        }
         default:
           ws.send(JSON.stringify({
             type: 'error',
@@ -217,15 +203,12 @@ wsApp.ws('/wuss', async (ws, req) => {
     }
   })
   ws.on('close', () => {
-    conns.connections.delete(ws)
-    if (conns.connections.size === 0) {
-      connections.delete(from)
-    }
+    connections.delete(ws)
   })
 })
 
-app.use(express.static(path.resolve(__dirname, '../build')))
-app.use('/static', express.static(path.resolve(__dirname, './static/')))
+app.use(express.static(nodePath.resolve(__dirname, '../build')))
+app.use('/static', express.static(nodePath.resolve(__dirname, './static/')))
 
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)

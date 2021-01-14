@@ -1,39 +1,18 @@
-import * as monaco from 'monaco-editor'
+import { StrictMode, createElement as e } from 'react'
+import * as ReactDOM from 'react-dom'
 
-function notNull<T> (value: T | null | undefined): T {
-  if (value === null || value === undefined) {
-    throw new Error(`Expected ${value} to not be null.`)
-  }
-  return value
-}
+import { App } from './App'
 
-const editor = monaco.editor.create(notNull(document.getElementById('container')), {
-  theme: 'vs-dark',
-  language: window.location.pathname.endsWith('.json') || window.location.pathname.endsWith('.mcmeta')
-    ? 'json'
-    : window.location.pathname.endsWith('.mcfunction')
-    ? 'mcfunction'
-    : 'plaintext',
-  // What full autoindent means:
-  // https://code.visualstudio.com/docs/getstarted/settings
-  autoIndent: 'full',
-  formatOnType: true,
-  formatOnPaste: true,
-  glyphMargin: true,
-  fontFamily: '"Fira Code", Consolas, "Courier New", monospace',
-  fontLigatures: '"ss06"',
-  tabCompletion: 'on',
-  wordWrap: 'on',
-  showUnused: true,
-  tabSize: 2,
-  insertSpaces: true,
-})
-window.addEventListener('resize', () => {
-  editor.layout()
-})
+ReactDOM.render(
+  e(
+    StrictMode,
+    null,
+    e(App),
+  ),
+  document.getElementById('root'),
+)
 
-const model = notNull(editor.getModel())
-
+/*
 const wsUrl = new URL('/wuss', window.location.href)
 wsUrl.protocol = wsUrl.protocol === 'https' ? 'wss' : 'ws'
 wsUrl.searchParams.set('from', window.location.pathname)
@@ -91,6 +70,7 @@ window.addEventListener('beforeunload', e => {
     e.returnValue = ''
   }
 })
+*/
 
 // const fileList = notNull(document.getElementById('file-list'))
 // window.addEventListener('message', e => {
