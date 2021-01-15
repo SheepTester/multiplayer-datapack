@@ -200,6 +200,7 @@ wsApp.ws('/wuss', async (ws, req) => {
           break
         }
         case 'file': {
+          conns.file = data.file
           await fs.writeFile(filePath, data.file)
           break
         }
