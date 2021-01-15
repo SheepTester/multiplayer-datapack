@@ -1,0 +1,41 @@
+/* Table row borders */
+div.rendered-react-keyed-file-browser div.files table tr:not(:last-child) td,
+div.rendered-react-keyed-file-browser div.action-bar input[type="search"] {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+div.rendered-react-keyed-file-browser div.files table thead th {
+  border-color: rgba(255, 255, 255, 0.05);
+}
+/* Selected file/folder left colour stripe indicator thing */
+div.rendered-react-keyed-file-browser div.files table tr.selected td.name:after {
+  background: #9c347c;
+}
+/* Confirm delete button */
+div.rendered-react-keyed-file-browser div.files form.deleting button,
+div.rendered-react-keyed-file-browser button.deleting {
+  color: red;
+  background-color: rgba(255, 0, 0, 0.1);
+}
+/* Dragover indicator */
+div.rendered-react-keyed-file-browser div.files table tr.dragover td,
+div.rendered-react-keyed-file-browser div.files table tr.dragover th {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+/* Action bar with the rename, delete, and create (sub)folder buttons */
+div.rendered-react-keyed-file-browser div.action-bar ul.item-actions {
+  margin: 0 10px;
+}
+/* Action bar button */
+div.rendered-react-keyed-file-browser a[role="button"] {
+  display: inline-flex;
+  align-items: center;
+}
+/* File details */
+div.rendered-react-keyed-file-browser > div:nth-child(2) {
+  padding: 0 10px;
+}
+/* File details close button */
+div.rendered-react-keyed-file-browser > div:nth-child(2) a[href] {
+  background-color: rgba(255, 255, 255, 0.05);
+  padding: 5px 10px;
+}

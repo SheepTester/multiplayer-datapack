@@ -1,9 +1,8 @@
 import { EventEmitter } from 'events'
-
-import { Folder } from './components/Files'
+import { FileBrowserFile } from 'react-keyed-file-browser'
 
 export declare interface Sync {
-  on (event: 'folders', listener: (folders: Folder) => void): this
+  on (event: 'files', listener: (files: FileBrowserFile[]) => void): this
 }
 
 export class Sync extends EventEmitter {
@@ -20,8 +19,8 @@ export class Sync extends EventEmitter {
   onMessage (e: MessageEvent<any>) {
     const { type, ...data } = JSON.parse(e.data)
     switch (type) {
-      case 'folders': {
-        this.emit('folders', data.folders)
+      case 'files': {
+        this.emit('files', data.files)
         break
       }
     }

@@ -5,7 +5,9 @@ body {
 body {
   margin: 0;
   display: flex;
-  font-family: 'Fira Code', monospace;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol';
   overflow: hidden;
   background-color: black;
   color: white;
@@ -22,27 +24,28 @@ textarea {
 button:not(:disabled) {
   cursor: pointer;
 }
+a {
+  color: inherit;
+  text-decoration: none;
+}
 
 #root {
   flex: auto;
   display: flex;
 }
 
-.files-list {
+.file-list {
   background-color: #111;
   color: rgba(255, 255, 255, 0.7);
   font-size: 14px;
   overflow: auto;
-  width: 350px;
+  width: 550px;
 }
-.file-items {
-  display: flex;
-  flex-direction: column;
+.create-file {
+  display: inline-flex;
+  align-items: center;
 }
-.folder-name,
-.file {
-  text-align: left;
-}
-.folder-contents {
-  padding-left: 20px;
+.file-list a:hover,
+.create-file:hover {
+  color: white;
 }

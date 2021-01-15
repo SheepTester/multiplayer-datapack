@@ -24,55 +24,35 @@ app.use(cookieSession({
 // https://stackoverflow.com/a/51476990
 const { app: wsApp } = expressWs(app)
 
-type FolderContents<T> = { [name: string]: T }
-
-class Folder {
-  path: string
-  folders: FolderContents<Folder>
-  files: FolderContents<string>
-  parent: Folder | null
-
-  constructor (
-    path: string,
-    folders: FolderContents<Folder> = {},
-    files: FolderContents<string> = {},
-    parent: Folder | null = null,
-  ) {
-    this.path = path
-    this.folders = folders
-    this.files = files
-    this.parent = parent
-  }
-
-  async scan (): Promise<this> {
-    this.folders = {}
-    this.files = {}
-    for (const name of await fs.readdir(this.path)) {
-      if (name.startsWith('.')) continue
-      const totalPath = nodePath.resolve(this.path, name)
-      const file = await fs.lstat(totalPath)
-      if (file.isDirectory()) {
-        this.folders[name] = await new Folder(totalPath, {}, {}, this).scan()
-      } else {
-        this.files[name] = totalPath
-      }
-    }
-    return this
-  }
-
-  toJSON (): any {
-    return {
-      folders: Object.entries(this.folders)
-        .map(([name, folder]): [string, any] => [name, folder.toJSON()])
-        .sort((a, b) => a[0].localeCompare(b[0])),
-      files: Object.keys(this.files)
-        .sort()
-        .map(name => [name, safeExtensions.test(name)]),
+interface FolderEntry {
+  key: string
+}
+interface FileEntry {
+  key: string
+  modified: number
+  size: number
+}
+async function scanFiles (scanPath: string, relPath: string = ''): Promise<(FileEntry | FolderEntry)[]> {
+  const files: (FileEntry | FolderEntry)[] = []
+  for (const name of await fs.readdir(scanPath)) {
+    if (name.startsWith('.')) continue
+    const totalPath = nodePath.resolve(scanPath, name)
+    const file = await fs.lstat(totalPath)
+    if (file.isDirectory()) {
+      files.push({ key: relPath + name + '/' })
+      files.push(...await scanFiles(totalPath, relPath + name + '/'))
+    } else {
+      files.push({
+        key: relPath + name,
+        modified: file.mtimeMs,
+        size: file.size,
+      })
     }
   }
+  return files
 }
 
-const folders = new Folder(baseDir).scan()
+const filePaths = scanFiles(baseDir)
 
 if (debugSrc) {
   const url = debugSrc
@@ -182,8 +162,8 @@ const connections: Set<WebSocket> = new Set()
 wsApp.ws('/wuss', async (ws, req) => {
   connections.add(ws)
   ws.send(JSON.stringify({
-    type: 'folders',
-    folders: await folders,
+    type: 'files',
+    files: await filePaths,
   }))
   ws.on('message', async msg => {
     try {
