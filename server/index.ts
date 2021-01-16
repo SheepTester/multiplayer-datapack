@@ -1,14 +1,15 @@
 import nodePath from 'path'
 import fs from 'fs-extra'
-import { config } from 'dotenv'
+import sanitize from 'sanitize-filename'
 import express from 'express'
 import expressWs from 'express-ws'
 import asyncHandler from 'express-async-handler'
 import cookieSession from 'cookie-session'
 import WebSocket from 'ws'
-
+import { config } from 'dotenv'
 config()
 
+import { Rearrangements } from '../common/common'
 import { port, baseDir, safeExtensions, debugSrc } from './args'
 
 const app = express()
@@ -52,7 +53,7 @@ async function scanFiles (scanPath: string, relPath: string = ''): Promise<(File
   return files
 }
 
-const filePaths = scanFiles(baseDir)
+let filePaths = scanFiles(baseDir)
 
 if (debugSrc) {
   const url = debugSrc
@@ -158,8 +159,10 @@ app.get('/files/*', asyncHandler(async (req, res) => {
   }
 }))
 
+const invalidKey = (key: string): boolean => key.startsWith('.') || key.includes('/.')
+
 const connections: Set<WebSocket> = new Set()
-wsApp.ws('/wuss', async (ws, req) => {
+wsApp.ws('/wuss', async (ws, _req) => {
   connections.add(ws)
   ws.send(JSON.stringify({
     type: 'files',
@@ -169,11 +172,61 @@ wsApp.ws('/wuss', async (ws, req) => {
     try {
       const { type, ...data } = JSON.parse(msg.toString())
       switch (type) {
-        default:
+        case 'rearrange': {
+          const changes: Rearrangements[] = data.changes
+          for (const change of changes) {
+            try {
+              switch (change.type) {
+                case 'create': {
+                  if (invalidKey(change.key)) continue
+                  if (change.key.endsWith('/')) {
+                    await fs.ensureDir(nodePath.resolve(baseDir, change.key))
+                  } else if (safeExtensions.test(change.key)) {
+                    await fs.writeFile(nodePath.resolve(baseDir, change.key), '')
+                  }
+                  break
+                }
+                case 'move': {
+                  if (invalidKey(change.oldKey) || invalidKey(change.newKey)) continue
+                  if (change.oldKey.endsWith('/') && change.newKey.endsWith('/') || safeExtensions.test(change.oldKey) && safeExtensions.test(change.newKey)) {
+                    await fs.move(nodePath.resolve(baseDir, change.oldKey), nodePath.resolve(baseDir, change.newKey))
+                  }
+                  break
+                }
+                case 'delete': {
+                  if (invalidKey(change.key)) continue
+                  if (change.key.endsWith('/') || safeExtensions.test(change.key)) {
+                    await fs.move(
+                      nodePath.resolve(baseDir, change.key),
+                      nodePath.resolve(
+                        __dirname,
+                        '../deleted/',
+                        sanitize(new Date().toISOString() + '_' + change.key)
+                          + (change.key.endsWith('/') ? '/' : '')
+                      ),
+                    )
+                  }
+                  break
+                }
+              }
+            } catch {}
+          }
+          filePaths = scanFiles(baseDir)
+          const files = await filePaths
+          for (const conn of connections) {
+            conn.send(JSON.stringify({
+              type: 'files',
+              files,
+            }))
+          }
+          break
+        }
+        default: {
           ws.send(JSON.stringify({
             type: 'error',
             error: `Unknown message type ${type}`,
           }))
+        }
       }
     } catch (err) {
       ws.send(JSON.stringify({

@@ -36,10 +36,9 @@ if (help) {
 
 export const port: number = +portString
 export const baseDir: string = base
-export const safeExtensions: RegExp = new RegExp(
+export const safeExtensions: RegExp = new RegExp(`(${
   extensions
     .replace(/\./g, '\\.')
     .replace(/,/g, '|')
-    + '$'
-)
+})$`)
 export const debugSrc: string | null = debug

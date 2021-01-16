@@ -52,6 +52,8 @@
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-keyed-file-browser": "^1.10.0",
-    "react-monaco-editor": "^0.41.2"
+    "react-monaco-editor": "^0.41.2",
+    "sanitize-filename": "^1.6.3",
+    "tiny-typed-emitter": "^2.0.3"
   }
 }

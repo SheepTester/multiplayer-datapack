@@ -8,32 +8,45 @@ import { Sync } from './sync'
 
 export const App: FC = () => {
   const [files, setFiles] = useState<FileBrowserFile[]>([])
+  const sync = useRef<Sync>()
 
-  console.log('a')
   useEffect(() => {
-    console.log('b')
-    const sync = new Sync()
-    sync.on('files', files => {
+    sync.current = new Sync()
+    sync.current.on('files', files => {
       setFiles(files)
     })
     return () => {
-      sync.close()
+      if (sync.current) {
+        sync.current.close()
+      }
     }
   }, [])
 
   const handleRenameFile = (oldKey: string, newKey: string) => {
     console.log('handleRenameFile', oldKey, newKey)
-    setFiles(files
-      .map(file => file.key === oldKey
-        ? { ...file, key: newKey }
-        : file))
+    // Prevent renaming to existing file name
+    if (!files.find(file => file.key === newKey)) {
+      setFiles(files
+        .map(file => file.key === oldKey
+          ? { ...file, key: newKey }
+          : file))
+      if (sync.current) {
+        sync.current.rearrangeFiles([{ type: 'move', oldKey, newKey }])
+      }
+    }
   }
   const handleRenameFolder = (oldKey: string, newKey: string) => {
     console.log('handleRenameFolder', oldKey, newKey)
-    setFiles(files
-      .map(file => file.key.startsWith(oldKey)
-        ? { ...file, key: file.key.replace(oldKey, newKey) }
-        : file))
+    // Prevent folder move if folder already exists
+    if (!files.find(file => file.key === newKey)) {
+      setFiles(files
+        .map(file => file.key.startsWith(oldKey)
+          ? { ...file, key: file.key.replace(oldKey, newKey) }
+          : file))
+      if (sync.current) {
+        sync.current.rearrangeFiles([{ type: 'move', oldKey, newKey }])
+      }
+    }
   }
 
   return e(
@@ -57,7 +70,7 @@ export const App: FC = () => {
             PowerPoint: e('i', { className: 'codicon codicon-file', 'aria-hidden': true }),
             Text: e('i', { className: 'codicon codicon-file-code', 'aria-hidden': true }),
             PDF: e('i', { className: 'codicon codicon-file-pdf', 'aria-hidden': true }),
-            Rename: e('i', { className: 'codicon codicon-diff-renamed', 'aria-hidden': true }),
+            Rename: e('i', { className: 'codicon codicon-tag', 'aria-hidden': true }),
             Folder: e('i', { className: 'codicon codicon-folder', 'aria-hidden': true }),
             FolderOpen: e('i', { className: 'codicon codicon-folder-opened', 'aria-hidden': true }),
             Delete: e('i', { className: 'codicon codicon-trash', 'aria-hidden': true }),
@@ -67,6 +80,9 @@ export const App: FC = () => {
           onCreateFolder (key) {
             console.log('onCreateFolder', key)
             setFiles([...files, { key }])
+            if (sync.current) {
+              sync.current.rearrangeFiles([{ type: 'create', key }])
+            }
           },
           onMoveFile: handleRenameFile,
           onMoveFolder: handleRenameFolder,
@@ -75,14 +91,21 @@ export const App: FC = () => {
           onDeleteFile (fileKeys) {
             console.log('onDeleteFile', fileKeys)
             setFiles(files
-              .filter(file => fileKeys.includes(file.key)))
+              .filter(file => !fileKeys.includes(file.key)))
+            if (sync.current) {
+              sync.current.rearrangeFiles(fileKeys.map(key => ({ type: 'delete', key })))
+            }
           },
           onDeleteFolder (folderKeys) {
             console.log('onDeleteFolder', folderKeys)
             setFiles(files
               .filter(file => folderKeys
                 .every(folderKey => !file.key.startsWith(folderKey))))
+            if (sync.current) {
+              sync.current.rearrangeFiles(folderKeys.map(key => ({ type: 'delete', key })))
+            }
           },
+          noFilesMessage: ' Folder is empty',
         },
       ),
       e(
@@ -96,6 +119,9 @@ export const App: FC = () => {
               name = `new_file_${i}.mcfunction`
             }
             setFiles([...files, { key: name, size: 0, modified: Date.now() }])
+            if (sync.current) {
+              sync.current.rearrangeFiles([{ type: 'create', key: name }])
+            }
           }
         },
         e('i', { className: 'codicon codicon-new-file', 'aria-hidden': true }),
