@@ -8,6 +8,7 @@ import { Sync } from './sync'
 
 export const App: FC = () => {
   const [files, setFiles] = useState<FileBrowserFile[]>([])
+  const [viewing, setViewing] = useState<string[]>([])
   const sync = useRef<Sync>()
 
   useEffect(() => {
@@ -23,7 +24,6 @@ export const App: FC = () => {
   }, [])
 
   const handleRenameFile = (oldKey: string, newKey: string) => {
-    console.log('handleRenameFile', oldKey, newKey)
     // Prevent renaming to existing file name
     if (!files.find(file => file.key === newKey)) {
       setFiles(files
@@ -36,7 +36,6 @@ export const App: FC = () => {
     }
   }
   const handleRenameFolder = (oldKey: string, newKey: string) => {
-    console.log('handleRenameFolder', oldKey, newKey)
     // Prevent folder move if folder already exists
     if (!files.find(file => file.key === newKey)) {
       setFiles(files
@@ -78,7 +77,6 @@ export const App: FC = () => {
             Download: e('i', { className: 'codicon codicon-desktop-download', 'aria-hidden': true }),
           },
           onCreateFolder (key) {
-            console.log('onCreateFolder', key)
             setFiles([...files, { key }])
             if (sync.current) {
               sync.current.rearrangeFiles([{ type: 'create', key }])
@@ -89,7 +87,6 @@ export const App: FC = () => {
           onRenameFile: handleRenameFile,
           onRenameFolder: handleRenameFolder,
           onDeleteFile (fileKeys) {
-            console.log('onDeleteFile', fileKeys)
             setFiles(files
               .filter(file => !fileKeys.includes(file.key)))
             if (sync.current) {
@@ -97,7 +94,6 @@ export const App: FC = () => {
             }
           },
           onDeleteFolder (folderKeys) {
-            console.log('onDeleteFolder', folderKeys)
             setFiles(files
               .filter(file => folderKeys
                 .every(folderKey => !file.key.startsWith(folderKey))))
@@ -106,6 +102,11 @@ export const App: FC = () => {
             }
           },
           noFilesMessage: ' Folder is empty',
+          onPreviewOpen (file) {
+            if (!viewing.includes(file.key)) {
+              setViewing([...viewing, file.key])
+            }
+          },
         },
       ),
       e(
@@ -131,12 +132,9 @@ export const App: FC = () => {
     e(
       Editor,
       {
-        language: window.location.pathname.endsWith('.json') || window.location.pathname.endsWith('.mcmeta')
-          ? 'json'
-          : window.location.pathname.endsWith('.mcfunction')
-          ? 'mcfunction'
-          : 'plaintext'
+        file: 'whatever.json',
       },
     ),
+    viewing,
   )
 }

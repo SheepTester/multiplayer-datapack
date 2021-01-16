@@ -1,4 +1,3 @@
-import { EventEmitter } from 'events'
 import { FileBrowserFile } from 'react-keyed-file-browser'
 import { TypedEmitter } from 'tiny-typed-emitter'
 
@@ -6,6 +5,9 @@ import { Rearrangements } from '../common/common'
 
 interface SyncEvents {
   files: (files: FileBrowserFile[]) => void
+  'file-content': (key: string, content: string | null, editing: boolean) => void
+  'not-editor': (key: string) => void
+  'now-editor': (key: string) => void
 }
 
 export class Sync extends TypedEmitter<SyncEvents> {
@@ -30,6 +32,18 @@ export class Sync extends TypedEmitter<SyncEvents> {
         this.emit('files', data.files)
         break
       }
+      case 'file-content': {
+        this.emit('file-content', data.key, data.content, data.editing)
+        break
+      }
+      case 'not-editor': {
+        this.emit('not-editor', data.key)
+        break
+      }
+      case 'now-editor': {
+        this.emit('now-editor', data.key)
+        break
+      }
       default: {
         console.error('Unknown message type', data)
       }
@@ -41,6 +55,52 @@ export class Sync extends TypedEmitter<SyncEvents> {
       this.ws.send(JSON.stringify({
         type: 'rearrange',
         changes,
+      }))
+    })
+  }
+
+  subscribeToFile (key: string) {
+    this.open.then(() => {
+      this.ws.send(JSON.stringify({
+        type: 'open',
+        key,
+      }))
+    })
+  }
+
+  unsubscribeFromFile (key: string) {
+    this.open.then(() => {
+      this.ws.send(JSON.stringify({
+        type: 'close',
+        key,
+      }))
+    })
+  }
+
+  claimEdit (key: string) {
+    this.open.then(() => {
+      this.ws.send(JSON.stringify({
+        type: 'claim-edit',
+        key,
+      }))
+    })
+  }
+
+  unclaimEdit (key: string) {
+    this.open.then(() => {
+      this.ws.send(JSON.stringify({
+        type: 'unclaim-edit',
+        key,
+      }))
+    })
+  }
+
+  saveFile (key: string, content: string) {
+    this.open.then(() => {
+      this.ws.send(JSON.stringify({
+        type: 'unclaim-edit',
+        key,
+        content,
       }))
     })
   }

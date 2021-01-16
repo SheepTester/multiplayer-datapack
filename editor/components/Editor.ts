@@ -5,14 +5,22 @@ import MonacoEditor from 'react-monaco-editor'
 import { notNull } from '../utils'
 
 interface Props {
-  language: 'json' | 'mcfunction' | 'plaintext'
+  file: string
 }
 
-export const Editor: FC<Props> = ({ language }: Props) => {
+function getLanguage (fileName: string): string {
+  return fileName.endsWith('.json') || fileName.endsWith('.mcmeta')
+    ? 'json'
+    : fileName.endsWith('.mcfunction')
+    ? 'mcfunction'
+    : 'plaintext'
+}
+
+export const Editor: FC<Props> = ({ file }: Props) => {
   return e(
     MonacoEditor,
     {
-      language,
+      language: getLanguage(file),
       options: {
         theme: 'vs-dark',
         // What full autoindent means:

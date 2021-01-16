@@ -161,6 +161,8 @@ app.get('/files/*', asyncHandler(async (req, res) => {
 
 const invalidKey = (key: string): boolean => key.startsWith('.') || key.includes('/.')
 
+const editors: Map<string, WebSocket> = new Map()
+const fileViewers: Map<string, Set<WebSocket>> = new Map()
 const connections: Set<WebSocket> = new Set()
 wsApp.ws('/wuss', async (ws, _req) => {
   connections.add(ws)
@@ -221,6 +223,85 @@ wsApp.ws('/wuss', async (ws, _req) => {
           }
           break
         }
+
+        case 'open': {
+          if (!invalidKey(data.key) && safeExtensions.test(data.key)) {
+            let viewers = fileViewers.get(data.key)
+            if (!viewers) {
+              viewers = new Set()
+              fileViewers.set(data.key, viewers)
+            }
+            let editing = false
+            if (!editors.has(data.key)) {
+              editors.set(data.key, ws)
+            }
+            ws.send(JSON.stringify({
+              type: 'file-content',
+              key: data.key,
+              content: await fs.readFile(nodePath.resolve(baseDir, data.key)),
+              editing,
+            }))
+          } else {
+            ws.send(JSON.stringify({
+              type: 'file-content',
+              key: data.key,
+              content: null,
+              editing: false,
+            }))
+          }
+          break
+        }
+
+        case 'close': {
+          const viewers = fileViewers.get(data.key)
+          if (viewers) {
+            viewers.delete(ws)
+          }
+          break
+        }
+
+        case 'claim-edit': {
+          const oldEditor = editors.get(data.key)
+          if (oldEditor) {
+            oldEditor.send(JSON.stringify({
+              type: 'not-editor',
+              key: data.key,
+            }))
+          }
+          editors.set(data.key, ws)
+          ws.send(JSON.stringify({
+            type: 'now-editor',
+            key: data.key,
+          }))
+          break
+        }
+
+        case 'unclaim-edit': {
+          if (editors.get(data.key) === ws) {
+            editors.delete(data.key)
+          }
+          ws.send(JSON.stringify({
+            type: 'not-editor',
+            key: data.key,
+          }))
+          break
+        }
+
+        case 'save': {
+          if (!invalidKey(data.key) && safeExtensions.test(data.key)) {
+            if (ws !== editors.get(data.key)) return
+            await fs.writeFile(nodePath.resolve(baseDir, data.key), data.content)
+            for (const viewer of (fileViewers.get(data.key) || new Set())) {
+              viewer.send(JSON.stringify({
+                type: 'file-content',
+                key: data.key,
+                content: data.content,
+              }))
+            }
+          }
+          break
+        }
+
         default: {
           ws.send(JSON.stringify({
             type: 'error',
