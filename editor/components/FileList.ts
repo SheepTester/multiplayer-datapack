@@ -7,7 +7,7 @@ import { Sync } from '../sync'
 
 interface Props {
   sync: Sync
-  onOpen: (key: string) => void
+  onOpen: (file: FileBrowserFile) => void
   width: number
 }
 
@@ -95,7 +95,7 @@ export const FileList: FC<Props> = ({ sync, onOpen, width }: Props) => {
           sync.rearrangeFiles(folderKeys.map(key => ({ type: 'delete', key })))
         },
         onPreviewOpen (file) {
-          onOpen(file.key)
+          onOpen(file)
         },
       },
     ),

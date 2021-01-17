@@ -45,6 +45,8 @@ a {
   display: inline-flex;
   align-items: center;
   white-space: pre-wrap;
+  margin: 10px;
+  padding: 0;
 }
 .file-list a:hover,
 .create-file:hover {
@@ -65,4 +67,45 @@ a {
 }
 .resize-handle.resizing {
   background-color: rgba(0, 255, 255, 0.2);
+}
+
+.editors {
+  flex: auto;
+  width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.editor-tabs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  user-select: none;
+}
+.editor-tab {
+  display: inline-flex;
+  padding: 0 15px;
+  padding-right: 10px;
+  align-items: center;
+  border-bottom: 5px solid transparent;
+  cursor: pointer;
+}
+.editor-tab:not(.editor-tab-selected):hover {
+  border-bottom-color: rgba(255, 255, 255, 0.2);
+}
+.editor-tab-selected {
+  border-bottom-color: #9c347c;
+  cursor: default;
+}
+.tab-close-btn {
+  padding: 5px;
+}
+.tab-close-btn:hover {
+  color: red;
+}
+.editor-wrapper {
+  flex: auto;
+  display: none;
+}
+.editor-wrapper-showing {
+  display: block;
 }
