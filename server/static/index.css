@@ -39,6 +39,7 @@ a {
   color: rgba(255, 255, 255, 0.7);
   font-size: 14px;
   overflow: auto;
+  flex: none;
 }
 .create-file {
   display: inline-flex;
@@ -48,4 +49,20 @@ a {
 .file-list a:hover,
 .create-file:hover {
   color: white;
+}
+
+.resize-handle {
+  width: 10px;
+  margin: 0 -5px;
+  cursor: ew-resize;
+  position: relative;
+  z-index: 10;
+  touch-action: none;
+  height: 100%;
+}
+.resize-handle:hover {
+  background-color: rgba(0, 255, 255, 0.1);
+}
+.resize-handle.resizing {
+  background-color: rgba(0, 255, 255, 0.2);
 }

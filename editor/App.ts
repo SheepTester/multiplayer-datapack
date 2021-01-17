@@ -2,20 +2,25 @@ import { createElement as e, FC, useState, Fragment, useRef, useEffect } from 'r
 
 import { Editor } from './components/Editor'
 import { FileList } from './components/FileList'
+import { ResizeHandle } from './components/ResizeHandle'
 import { Sync } from './sync'
 
 export const App: FC = () => {
   const [viewing, setViewing] = useState<string[]>([])
+  const [fileListWidth, setFileListWidth] = useState<number>(350)
 
-  const sync = useRef<Sync>()
-  // HACK to force rerender
-  const [, setWhatever] = useState<number>(0)
+  const syncRef = useRef<Sync>()
+  // https://reactjs.org/docs/hooks-faq.html#how-to-create-expensive-objects-lazily
+  function getSync (): Sync {
+    if (!syncRef.current) {
+      syncRef.current = new Sync()
+    }
+    return syncRef.current
+  }
   useEffect(() => {
-    sync.current = new Sync()
-    setWhatever(Math.random())
     return () => {
-      if (sync.current) {
-        sync.current.close()
+      if (syncRef.current) {
+        syncRef.current.close()
       }
     }
   }, [])
@@ -23,16 +28,25 @@ export const App: FC = () => {
   return e(
     Fragment,
     null,
-    sync.current && e(
+    e(
       FileList,
       {
-        sync: sync.current,
+        sync: getSync(),
         onOpen (file) {
           if (!viewing.includes(file)) {
             setViewing([...viewing, file])
           }
         },
-        width: 550,
+        width: fileListWidth,
+      },
+    ),
+    e(
+      ResizeHandle,
+      {
+        direction: 'horizontal',
+        onResize ({ x }) {
+          setFileListWidth(x)
+        },
       },
     ),
     e(
@@ -41,6 +55,5 @@ export const App: FC = () => {
         file: 'whatever.json',
       },
     ),
-    viewing,
   )
 }

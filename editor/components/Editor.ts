@@ -17,6 +17,8 @@ function getLanguage (fileName: string): string {
 }
 
 export const Editor: FC<Props> = ({ file }: Props) => {
+  const editorRef = useRef<monaco.editor.IStandaloneCodeEditor>()
+
   return e(
     MonacoEditor,
     {
@@ -37,6 +39,9 @@ export const Editor: FC<Props> = ({ file }: Props) => {
         tabSize: 2,
         insertSpaces: true,
       },
+      editorDidMount (editor) {
+        editorRef.current = editor
+      }
     },
   )
 }
