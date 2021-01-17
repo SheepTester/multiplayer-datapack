@@ -102,13 +102,14 @@ export const App: FC = () => {
         TabPanel,
         {
           key: file,
-          className: 'editor-wrapper',
-          selectedClassName: 'editor-wrapper-showing',
+          className: 'editor-tab-content',
+          selectedClassName: 'editor-tab-content-showing',
           forceRender: true,
         },
         e(
           Editor,
           {
+            sync: getSync(),
             file,
           },
         )

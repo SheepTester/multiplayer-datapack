@@ -80,6 +80,11 @@ a {
   padding: 0;
   list-style: none;
   user-select: none;
+  white-space: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  flex: none;
+  color: rgba(255, 255, 255, 0.7);
 }
 .editor-tab {
   display: inline-flex;
@@ -95,6 +100,7 @@ a {
 .editor-tab-selected {
   border-bottom-color: #9c347c;
   cursor: default;
+  color: white;
 }
 .tab-close-btn {
   padding: 5px;
@@ -102,10 +108,34 @@ a {
 .tab-close-btn:hover {
   color: red;
 }
-.editor-wrapper {
+.editor-tab-content {
   flex: auto;
   display: none;
 }
-.editor-wrapper-showing {
-  display: block;
+.editor-tab-content-showing {
+  display: flex;
+  flex-direction: column;
+}
+.editor-wrapper {
+  flex: auto;
+}
+
+.file-notice {
+  flex: none;
+  height: 48px;
+  padding: 0 10px;
+  display: flex;
+  align-items: center;
+  background-color: #2a2a2a;
+  color: rgba(255, 255, 255, 0.7);
+}
+.invalid-file {
+  color: red;
+}
+.claim-edit-btn {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+.claim-edit-btn:hover {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.2);
 }

@@ -98,7 +98,7 @@ export class Sync extends TypedEmitter<SyncEvents> {
   saveFile (key: string, content: string) {
     this.open.then(() => {
       this.ws.send(JSON.stringify({
-        type: 'unclaim-edit',
+        type: 'save',
         key,
         content,
       }))

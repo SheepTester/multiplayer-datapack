@@ -231,14 +231,16 @@ wsApp.ws('/wuss', async (ws, _req) => {
               viewers = new Set()
               fileViewers.set(data.key, viewers)
             }
+            viewers.add(ws)
             let editing = false
             if (!editors.has(data.key)) {
               editors.set(data.key, ws)
+              editing = true
             }
             ws.send(JSON.stringify({
               type: 'file-content',
               key: data.key,
-              content: await fs.readFile(nodePath.resolve(baseDir, data.key)),
+              content: await fs.readFile(nodePath.resolve(baseDir, data.key), 'utf8'),
               editing,
             }))
           } else {
@@ -290,14 +292,19 @@ wsApp.ws('/wuss', async (ws, _req) => {
         case 'save': {
           if (!invalidKey(data.key) && safeExtensions.test(data.key)) {
             if (ws !== editors.get(data.key)) return
-            await fs.writeFile(nodePath.resolve(baseDir, data.key), data.content)
-            for (const viewer of (fileViewers.get(data.key) || new Set())) {
-              viewer.send(JSON.stringify({
-                type: 'file-content',
-                key: data.key,
-                content: data.content,
-              }))
+            const viewers = fileViewers.get(data.key)
+            if (viewers) {
+              for (const viewer of viewers) {
+                if (viewer !== ws) {
+                  viewer.send(JSON.stringify({
+                    type: 'file-content',
+                    key: data.key,
+                    content: data.content,
+                  }))
+                }
+              }
             }
+            await fs.writeFile(nodePath.resolve(baseDir, data.key), data.content)
           }
           break
         }
@@ -318,6 +325,14 @@ wsApp.ws('/wuss', async (ws, _req) => {
   })
   ws.on('close', () => {
     connections.delete(ws)
+    for (const [key, editor] of editors) {
+      if (editor === ws) {
+        editors.delete(key)
+      }
+    }
+    for (const viewers of fileViewers.values()) {
+      viewers.delete(ws)
+    }
   })
 })
 
