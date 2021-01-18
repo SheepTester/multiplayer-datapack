@@ -6,9 +6,14 @@ import { FileList } from './components/FileList'
 import { ResizeHandle } from './components/ResizeHandle'
 import { Sync } from './sync'
 
+interface ViewingFile {
+  key: string
+  unsavedChanges: boolean
+}
+
 export const App: FC = () => {
   const [fileListWidth, setFileListWidth] = useState<number>(350)
-  const [viewing, setViewing] = useState<string[]>([])
+  const [viewing, setViewing] = useState<ViewingFile[]>([])
   const [tabIndex, setTabIndex] = useState<number>(0)
 
   const syncRef = useRef<Sync>()
@@ -27,6 +32,21 @@ export const App: FC = () => {
     }
   }, [])
 
+  const anyUnsaved: boolean = !!viewing.find(file => file.unsavedChanges)
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (anyUnsaved) {
+        e.preventDefault()
+        e.returnValue = ''
+      }
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload)
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload)
+    }
+  }, [anyUnsaved])
+
+  console.log('Rendering with tabIndex', tabIndex)
   return e(
     Fragment,
     null,
@@ -35,17 +55,19 @@ export const App: FC = () => {
       {
         sync: getSync(),
         onOpen ({ key }) {
-          if (!viewing.includes(key)) {
+          if (!viewing.find(file => file.key === key)) {
             if (viewing.length) {
               setViewing([
                 ...viewing.slice(0, tabIndex + 1),
-                key,
+                { key, unsavedChanges: false },
                 ...viewing.slice(tabIndex + 1),
               ])
               setTabIndex(tabIndex + 1)
+              console.log('setTabIndex', tabIndex + 1, 'FileList.onOpen')
             } else {
-              setViewing([key])
+              setViewing([{ key, unsavedChanges: false }])
               setTabIndex(0)
+              console.log('setTabIndex', 0, 'FileList.onOpen')
             }
           }
         },
@@ -68,6 +90,7 @@ export const App: FC = () => {
         selectedIndex: tabIndex,
         onSelect (index) {
           setTabIndex(index)
+          console.log('setTabIndex', index, 'Tabs.onSelect')
         },
       },
       e(
@@ -75,22 +98,33 @@ export const App: FC = () => {
         {
           className: 'editor-tabs',
         },
-        viewing.map(file => e(
+        viewing.map(({ key, unsavedChanges }) => e(
           Tab,
           {
-            key: file,
+            key,
             className: 'editor-tab',
             selectedClassName: 'editor-tab-selected',
           },
-          file,
+          key,
+          e(
+            'span',
+            {
+              style: {
+                display: unsavedChanges ? null : 'none',
+              },
+            },
+            '*'
+          ),
           e(
             'button',
             {
               className: 'tab-close-btn',
               onClick () {
-                setViewing(viewing.filter(key => key !== file))
+                if (unsavedChanges && !confirm('You have unsaved changes. Close file?')) return
+                setViewing(viewing.filter(file => file.key !== key))
                 if (tabIndex === viewing.length - 1) {
                   setTabIndex(viewing.length - 2)
+                  console.log('setTabIndex', viewing.length - 2, 'button.onClick')
                 }
               },
             },
@@ -98,10 +132,10 @@ export const App: FC = () => {
           ),
         )),
       ),
-      viewing.map(file => e(
+      viewing.map(({ key }) => e(
         TabPanel,
         {
-          key: file,
+          key,
           className: 'editor-tab-content',
           selectedClassName: 'editor-tab-content-showing',
           forceRender: true,
@@ -110,7 +144,13 @@ export const App: FC = () => {
           Editor,
           {
             sync: getSync(),
-            file,
+            file: key,
+            onChangeUnsavedChanges (unsavedChanges) {
+              setViewing(viewing.map(file =>
+                file.key === key
+                  ? { ...file, unsavedChanges }
+                  : file))
+            }
           },
         )
       )),

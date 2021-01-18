@@ -1,13 +1,8 @@
-import { createElement as e, FC, useRef, useState, useEffect, Fragment } from 'react'
+import { createElement as e, FC, useRef, useState, useEffect, Fragment, useCallback } from 'react'
 import * as monaco from 'monaco-editor'
 import MonacoEditor from 'react-monaco-editor'
 
 import { Sync } from '../sync'
-
-interface Props {
-  sync: Sync
-  file: string
-}
 
 function getLanguage (fileName: string): string {
   return fileName.endsWith('.json') || fileName.endsWith('.mcmeta')
@@ -34,44 +29,62 @@ const editorOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
   insertSpaces: true,
 }
 
-export const Editor: FC<Props> = ({ sync, file }: Props) => {
+interface Props {
+  sync: Sync
+  file: string
+  onChangeUnsavedChanges: (unsavedChanges: boolean) => void
+}
+
+export const Editor: FC<Props> = ({ sync, file, onChangeUnsavedChanges }: Props) => {
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor>()
+
+  // Unmodified file content
+  const [content, setContent] = useState<string>('')
+  // Modified file content in editor
   const [value, setValue] = useState<string>('')
+
   const [editing, setEditing] = useState<boolean>(false)
   const [valid, setValid] = useState<boolean>(true)
 
-  useEffect(() => {
-    const onFileContent = (key: string, content: string | null, editing: boolean) => {
-      if (key !== file) return
-      if (content !== null) {
-        setValue(content)
-        setValid(true)
-      } else {
-        setValid(false)
-      }
-      setEditing(editing)
+  const handleFileContent = useCallback((key: string, newContent: string | null, editing: boolean) => {
+    if (key !== file) return
+    if (newContent !== null) {
+      setContent(newContent)
+      setValue(value => content === value ? newContent : value)
+      setValid(true)
+    } else {
+      setValid(false)
     }
-    const onNowEditor = (key: string) => {
+    setEditing(editing)
+  }, [content])
+
+  useEffect(() => {
+    sync.on('file-content', handleFileContent)
+    return () => {
+      sync.off('file-content', handleFileContent)
+    }
+  }, [handleFileContent])
+
+  useEffect(() => {
+    const handleNowEditor = (key: string) => {
       if (key === file) {
         setEditing(true)
       }
     }
-    const onNotEditor = (key: string) => {
+    const handleNotEditor = (key: string) => {
       if (key === file) {
         setEditing(false)
       }
     }
-    sync.on('file-content', onFileContent)
-    sync.on('now-editor', onNowEditor)
-    sync.on('not-editor', onNotEditor)
+    sync.on('now-editor', handleNowEditor)
+    sync.on('not-editor', handleNotEditor)
     sync.subscribeToFile(file)
     return () => {
-      sync.off('file-content', onFileContent)
-      sync.off('now-editor', onNowEditor)
-      sync.off('not-editor', onNotEditor)
+      sync.off('now-editor', handleNowEditor)
+      sync.off('not-editor', handleNotEditor)
       sync.unsubscribeFromFile(file)
     }
-  }, [])
+  }, [file])
 
   return e(
     Fragment,
@@ -98,9 +111,16 @@ export const Editor: FC<Props> = ({ sync, file }: Props) => {
               contextMenuGroupId: 'datapack',
               contextMenuOrder: 2,
               run: () => {
-                sync.saveFile(file, editor.getValue())
+                if (editing) {
+                  sync.saveFile(file, editor.getValue())
+                  onChangeUnsavedChanges(false)
+                }
               }
             })
+          },
+          onChange (value) {
+            setValue(value)
+            onChangeUnsavedChanges(value !== content)
           },
         },
       ),
@@ -119,12 +139,12 @@ export const Editor: FC<Props> = ({ sync, file }: Props) => {
         e(
           'button',
           {
-            className: 'claim-edit-btn',
+            className: 'file-notice-btn',
             onClick () {
               sync.claimEdit(file)
             },
           },
-          'Claim editor'
+          'Claim editor',
         ),
       ) : e(
         'span',
@@ -133,7 +153,7 @@ export const Editor: FC<Props> = ({ sync, file }: Props) => {
         e(
           'button',
           {
-            className: 'claim-edit-btn',
+            className: 'file-notice-btn',
             onClick () {
               sync.unclaimEdit(file)
             },
@@ -141,6 +161,17 @@ export const Editor: FC<Props> = ({ sync, file }: Props) => {
           },
           'Abdicate throne',
         ),
+      ),
+      value !== content && e(
+        'button',
+        {
+          className: 'file-notice-btn',
+          onClick () {
+            setValue(content)
+            onChangeUnsavedChanges(false)
+          },
+        },
+        'Reset changes',
       ),
     ),
   )
