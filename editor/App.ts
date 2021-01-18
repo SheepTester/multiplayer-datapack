@@ -46,7 +46,6 @@ export const App: FC = () => {
     }
   }, [anyUnsaved])
 
-  console.log('Rendering with tabIndex', tabIndex)
   return e(
     Fragment,
     null,
@@ -63,11 +62,9 @@ export const App: FC = () => {
                 ...viewing.slice(tabIndex + 1),
               ])
               setTabIndex(tabIndex + 1)
-              console.log('setTabIndex', tabIndex + 1, 'FileList.onOpen')
             } else {
               setViewing([{ key, unsavedChanges: false }])
               setTabIndex(0)
-              console.log('setTabIndex', 0, 'FileList.onOpen')
             }
           }
         },
@@ -90,7 +87,6 @@ export const App: FC = () => {
         selectedIndex: tabIndex,
         onSelect (index) {
           setTabIndex(index)
-          console.log('setTabIndex', index, 'Tabs.onSelect')
         },
       },
       e(
@@ -119,12 +115,12 @@ export const App: FC = () => {
             'button',
             {
               className: 'tab-close-btn',
-              onClick () {
+              onClick (e: MouseEvent) {
+                e.stopPropagation()
                 if (unsavedChanges && !confirm('You have unsaved changes. Close file?')) return
                 setViewing(viewing.filter(file => file.key !== key))
                 if (tabIndex === viewing.length - 1) {
                   setTabIndex(viewing.length - 2)
-                  console.log('setTabIndex', viewing.length - 2, 'button.onClick')
                 }
               },
             },
