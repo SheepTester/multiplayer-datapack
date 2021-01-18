@@ -34,11 +34,20 @@ a {
   display: flex;
 }
 
-.file-list {
+.sidebar {
   background-color: #111;
   color: rgba(255, 255, 255, 0.7);
   font-size: 14px;
+  flex: none;
   overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+.flex {
+  flex: auto;
+}
+
+.file-list {
   flex: none;
 }
 .create-file {
@@ -53,19 +62,25 @@ a {
   color: white;
 }
 
-.resize-handle {
-  width: 10px;
-  margin: 0 -5px;
-  cursor: ew-resize;
+.resize-handle-wrapper {
+  flex: none;
+  width: 0;
+  touch-action: none;
   position: relative;
   z-index: 10;
-  touch-action: none;
+  cursor: ew-resize;
+}
+.resize-handle {
+  position: relative;
+  top: 0;
+  left: -5px;
+  width: 10px;
   height: 100%;
 }
-.resize-handle:hover {
+.resize-handle-wrapper:hover .resize-handle {
   background-color: rgba(0, 255, 255, 0.1);
 }
-.resize-handle.resizing {
+.resize-handle-wrapper.resizing .resize-handle {
   background-color: rgba(0, 255, 255, 0.2);
 }
 
@@ -140,4 +155,27 @@ a {
 .file-notice-btn:hover {
   color: white;
   background-color: rgba(255, 255, 255, 0.2);
+}
+
+.connection-closed {
+  background-color: #666;
+  padding: 10px;
+  flex: none;
+}
+.connection-error {
+  background-color: red;
+  color: white;
+}
+
+.name-input-wrapper {
+  display: flex;
+  margin: 10px;
+  font-size: 16px;
+  align-items: center;
+}
+.name-input {
+  flex: auto;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  margin-left: 5px;
+  text-overflow: ellipsis;
 }

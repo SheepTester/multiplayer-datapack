@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Active connections</title>
+
+    <style>
+      .time {
+        color: grey;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Active connections</h2>
+    <% if (connections.length) { %>
+      <ul>
+        <% for (const { name, start, state } of connections) { %>
+          <li>
+            <%= name %>
+            <span class="time">Connected since <%= start.toLocaleString() %></span>
+            (<%= ['connecting', 'open', 'closing', 'closed'][state] %>)
+          </li>
+        <% } %>
+      </ul>
+    <% } else { %>
+      <p>No connections</p>
+    <% } %>
+  </body>
+</html>

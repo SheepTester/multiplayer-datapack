@@ -1,5 +1,6 @@
-import { createElement as e, FC, useState, Fragment, useRef, useEffect } from 'react'
+import { createElement as e, FC, useState, Fragment, useRef, useEffect, useCallback } from 'react'
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs'
+import classNames from 'classnames'
 
 import { Editor, IntroEditor } from './components/Editor'
 import { FileList } from './components/FileList'
@@ -15,7 +16,9 @@ export const App: FC = () => {
   const [fileListWidth, setFileListWidth] = useState<number>(350)
   const [viewing, setViewing] = useState<ViewingFile[]>([])
   const [tabIndex, setTabIndex] = useState<number>(0)
+  const [name, setName] = useState<string>('')
 
+  const [closed, setClosed] = useState<null | 'closed' | 'error'>(null)
   const syncRef = useRef<Sync>()
   // https://reactjs.org/docs/hooks-faq.html#how-to-create-expensive-objects-lazily
   function getSync (): Sync {
@@ -25,10 +28,19 @@ export const App: FC = () => {
     return syncRef.current
   }
   useEffect(() => {
+    const sync = getSync()
+    const handleName = (name: string) => {
+      setName(name)
+    }
+    const handleClose = (err: boolean) => {
+      setClosed(err ? 'error' : 'closed')
+    }
+    sync.on('name', handleName)
+    sync.on('close', handleClose)
     return () => {
-      if (syncRef.current) {
-        syncRef.current.close()
-      }
+      sync.off('name', handleName)
+      sync.off('close', handleClose)
+      sync.close()
     }
   }, [])
 
@@ -46,30 +58,85 @@ export const App: FC = () => {
     }
   }, [anyUnsaved])
 
+  // React annoyingly does not have an actual change event
+  // https://github.com/facebook/react/issues/3964
+  const inputRef = useCallback((inputNode: HTMLInputElement) => {
+    const handleChange = () => {
+      getSync().setName(inputNode.value)
+      fetch('/set-name', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: inputNode.value,
+        }),
+      })
+    }
+    inputNode.addEventListener('change', handleChange)
+    // TODO: Bother cleaning up the event?
+  }, [])
+
   return e(
     Fragment,
     null,
     e(
-      FileList,
+      'div',
       {
-        sync: getSync(),
-        onOpen ({ key }) {
-          if (!viewing.find(file => file.key === key)) {
-            if (viewing.length) {
-              setViewing([
-                ...viewing.slice(0, tabIndex + 1),
-                { key, unsavedChanges: false },
-                ...viewing.slice(tabIndex + 1),
-              ])
-              setTabIndex(tabIndex + 1)
-            } else {
-              setViewing([{ key, unsavedChanges: false }])
-              setTabIndex(0)
-            }
-          }
+        className: 'sidebar',
+        style: {
+          width: fileListWidth + 'px',
         },
-        width: fileListWidth,
       },
+      closed && e(
+        'div',
+        {
+          className: classNames('connection-closed', closed === 'error' && 'connection-error'),
+        },
+        closed === 'error'
+          ? 'There was a problem connecting to the server.'
+          : 'The connection with the server closed.',
+      ),
+      e(
+        FileList,
+        {
+          sync: getSync(),
+          onOpen ({ key }) {
+            if (!viewing.find(file => file.key === key)) {
+              if (viewing.length) {
+                setViewing([
+                  ...viewing.slice(0, tabIndex + 1),
+                  { key, unsavedChanges: false },
+                  ...viewing.slice(tabIndex + 1),
+                ])
+                setTabIndex(tabIndex + 1)
+              } else {
+                setViewing([{ key, unsavedChanges: false }])
+                setTabIndex(0)
+              }
+            }
+          },
+        },
+      ),
+      e('span', { className: 'flex' }),
+      e(
+        'label',
+        { className: 'name-input-wrapper' },
+        'Name: ',
+        e(
+          'input',
+          {
+            className: 'name-input',
+            type: 'text',
+            value: name,
+            // https://blaipratdesaba.com/react-typescript-cheatsheet-form-elements-and-onchange-event-types-8c2baf03230c
+            onChange (e: React.ChangeEvent<HTMLInputElement>) {
+              setName(e.target.value)
+            },
+            ref: inputRef,
+          },
+        ),
+      ),
     ),
     e(
       ResizeHandle,

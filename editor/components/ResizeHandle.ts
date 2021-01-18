@@ -27,14 +27,9 @@ export const ResizeHandle: FC<Props> = ({ onResize, direction = 'both' }: Props)
     'div',
     {
       className: classNames(
-        'resize-handle',
+        'resize-handle-wrapper',
         pointerId !== null && 'resizing',
       ),
-      style: mousePos && {
-        position: 'fixed',
-        left: direction !== 'vertical' && mousePos.x + 'px',
-        top: direction !== 'horizontal' && mousePos.y + 'px',
-      },
       onPointerDown (e: PointerEvent) {
         if (pointerId === null) {
           setPointerId(e.pointerId)
@@ -55,6 +50,17 @@ export const ResizeHandle: FC<Props> = ({ onResize, direction = 'both' }: Props)
       },
       onPointerUp: pointerEnd,
       onPointerCancel: pointerEnd,
-    }
+    },
+    e(
+      'div',
+      {
+        className: 'resize-handle',
+        style: mousePos && {
+          position: 'fixed',
+          left: direction !== 'vertical' && mousePos.x + 'px',
+          top: direction !== 'horizontal' && mousePos.y + 'px',
+        },
+      }
+    ),
   )
 }

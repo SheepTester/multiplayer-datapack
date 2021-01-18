@@ -13,6 +13,7 @@ import { Rearrangements } from '../common/common'
 import { port, baseDir, safeExtensions, debugSrc } from './args'
 
 const app = express()
+app.use(express.json())
 app.set('views', nodePath.resolve(__dirname, './views'))
 app.set('view options', {
   rmWhitespace: true
@@ -161,14 +162,27 @@ app.get('/files/*', asyncHandler(async (req, res) => {
 
 const invalidKey = (key: string): boolean => key.startsWith('.') || key.includes('/.')
 
+interface ConnectionInfo {
+  name: string
+  start: Date
+}
+
 const editors: Map<string, WebSocket> = new Map()
 const fileViewers: Map<string, Set<WebSocket>> = new Map()
-const connections: Set<WebSocket> = new Set()
-wsApp.ws('/wuss', async (ws, _req) => {
-  connections.add(ws)
+const connections: Map<WebSocket, ConnectionInfo> = new Map()
+wsApp.ws('/wuss', async (ws, req) => {
+  const info = {
+    name: req.session && req.session.name || 'Suspicious unknown user from ' + req.ip,
+    start: new Date(),
+  }
+  connections.set(ws, info)
   ws.send(JSON.stringify({
     type: 'files',
     files: await filePaths,
+  }))
+  ws.send(JSON.stringify({
+    type: 'name',
+    name: info.name,
   }))
   ws.on('message', async msg => {
     try {
@@ -215,7 +229,7 @@ wsApp.ws('/wuss', async (ws, _req) => {
           }
           filePaths = scanFiles(baseDir)
           const files = await filePaths
-          for (const conn of connections) {
+          for (const conn of connections.keys()) {
             conn.send(JSON.stringify({
               type: 'files',
               files,
@@ -309,6 +323,11 @@ wsApp.ws('/wuss', async (ws, _req) => {
           break
         }
 
+        case 'name': {
+          info.name = data.name
+          break
+        }
+
         default: {
           ws.send(JSON.stringify({
             type: 'error',
@@ -334,6 +353,26 @@ wsApp.ws('/wuss', async (ws, _req) => {
       viewers.delete(ws)
     }
   })
+})
+
+app.get('/connections', (_req, res) => {
+  res.render('connections', {
+    connections: Array.from(
+      connections.entries(),
+      ([ws, info]) => ({ ...info, state: ws.readyState }),
+    ),
+  })
+})
+
+app.post('/set-name', (req, res) => {
+  console.log(req.body)
+  const { name } = req.body
+  if (typeof name === 'string' && name.length < 256 && name.length > 0) {
+    if (req.session) {
+      req.session.name = name
+    }
+  }
+  res.status(204).end()
 })
 
 app.use(express.static(nodePath.resolve(__dirname, '../build')))

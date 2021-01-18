@@ -8,10 +8,9 @@ import { Sync } from '../sync'
 interface Props {
   sync: Sync
   onOpen: (file: FileBrowserFile) => void
-  width: number
 }
 
-export const FileList: FC<Props> = ({ sync, onOpen, width }: Props) => {
+export const FileList: FC<Props> = ({ sync, onOpen }: Props) => {
   const [files, setFiles] = useState<FileBrowserFile[]>([])
 
   useEffect(() => {
@@ -49,9 +48,6 @@ export const FileList: FC<Props> = ({ sync, onOpen, width }: Props) => {
     'div',
     {
       className: 'file-list',
-      style: {
-        width: width + 'px',
-      },
     },
     e(
       FileBrowser,

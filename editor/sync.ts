@@ -8,6 +8,8 @@ interface SyncEvents {
   'file-content': (key: string, content: string | null, editing: boolean) => void
   'not-editor': (key: string) => void
   'now-editor': (key: string) => void
+  'name': (name: string) => void
+  'close': (err: boolean) => void
 }
 
 export class Sync extends TypedEmitter<SyncEvents> {
@@ -23,6 +25,12 @@ export class Sync extends TypedEmitter<SyncEvents> {
       this.ws.addEventListener('open', () => resolve())
     })
     this.ws.addEventListener('message', this.onMessage.bind(this))
+    this.ws.addEventListener('close', () => {
+      this.emit('close', false)
+    })
+    this.ws.addEventListener('error', () => {
+      this.emit('close', true)
+    })
   }
 
   onMessage (e: MessageEvent<any>) {
@@ -44,8 +52,12 @@ export class Sync extends TypedEmitter<SyncEvents> {
         this.emit('now-editor', data.key)
         break
       }
+      case 'name': {
+        this.emit('name', data.name)
+        break
+      }
       default: {
-        console.error('Unknown message type', data)
+        console.error('Unknown message type', type, data)
       }
     }
   }
@@ -101,6 +113,15 @@ export class Sync extends TypedEmitter<SyncEvents> {
         type: 'save',
         key,
         content,
+      }))
+    })
+  }
+
+  setName (name: string) {
+    this.open.then(() => {
+      this.ws.send(JSON.stringify({
+        type: 'name',
+        name,
       }))
     })
   }

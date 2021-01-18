@@ -24,11 +24,17 @@ div.rendered-react-keyed-file-browser div.files table tr.dragover th {
 /* Action bar with the rename, delete, and create (sub)folder buttons */
 div.rendered-react-keyed-file-browser div.action-bar ul.item-actions {
   margin: 0 10px;
+  min-width: unset;
 }
 /* Action bar button */
 div.rendered-react-keyed-file-browser a[role="button"] {
   display: inline-flex;
   align-items: center;
+}
+/* Filter input */
+div.rendered-react-keyed-file-browser div.action-bar input[type="search"] {
+  min-width: unset;
+  width: 100%;
 }
 /* File details */
 div.rendered-react-keyed-file-browser > div:nth-child(2) {
