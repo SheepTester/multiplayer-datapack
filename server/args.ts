@@ -35,7 +35,7 @@ if (help) {
   process.exit()
 }
 
-fs.ensureDir(base)
+fs.ensureDirSync(base)
 
 export const port: number = +portString
 export const baseDir: string = base
