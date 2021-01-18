@@ -1,7 +1,7 @@
 import { FileBrowserFile } from 'react-keyed-file-browser'
 import { TypedEmitter } from 'tiny-typed-emitter'
 
-import { Rearrangements } from '../common/common'
+import { Rearrangement } from '../common/common'
 
 interface SyncEvents {
   files: (files: FileBrowserFile[]) => void
@@ -62,7 +62,7 @@ export class Sync extends TypedEmitter<SyncEvents> {
     }
   }
 
-  rearrangeFiles (changes: Rearrangements[]) {
+  rearrangeFiles (changes: Rearrangement[]) {
     this.open.then(() => {
       this.ws.send(JSON.stringify({
         type: 'rearrange',

@@ -9,7 +9,7 @@ import WebSocket from 'ws'
 import { config } from 'dotenv'
 config()
 
-import { Rearrangements } from '../common/common'
+import { Rearrangement, isRearrangement } from '../common/common'
 import { port, baseDir, safeExtensions, debugSrc } from './args'
 
 const app = express()
@@ -160,11 +160,56 @@ app.get('/files/*', asyncHandler(async (req, res) => {
   }
 }))
 
-const invalidKey = (key: string): boolean => key.startsWith('.') || key.includes('/.')
+const invalidKey = (key: string): boolean => typeof key !== 'string'
+  || key.startsWith('.') || key.includes('/.')
 
 interface ConnectionInfo {
   name: string
   start: Date
+}
+
+type Message = {
+  type: 'rearrange'
+  changes: Rearrangement[]
+} | {
+  type: 'open' | 'close' | 'claim-edit' | 'unclaim-edit'
+  key: string
+} | {
+  type: 'save'
+  key: string
+  content: string
+} | {
+  type: 'name'
+  name: string
+}
+function shouldBeMessage (value: any): asserts value is Message {
+  if (value === null) throw new TypeError('Message cannot be null.')
+  if (typeof value !== 'object') throw new TypeError('Message must be an object.')
+  const { type, changes, key, content, name } = value
+  if (typeof type !== 'string') throw new TypeError('Message type must be a string.')
+  if (type === 'rearrange') {
+    if (!Array.isArray(changes)) {
+      throw new TypeError('Changes must be an array.')
+    }
+    if (!changes.every(isRearrangement)) {
+      throw new TypeError('Not every change is a rearrangement.')
+    }
+  } else if (['open', 'close', 'claim-edit', 'unclaim-edit', 'save'].includes(type)) {
+    if (typeof key !== 'string') {
+      throw new TypeError('Key must be a string.')
+    }
+    if (type === 'save') {
+      if (typeof content !== 'string') {
+        throw new TypeError('Content must be a string.')
+      }
+    }
+  } else if (type === 'name') {
+    if (typeof name !== 'string') {
+      throw new TypeError('Name must be a string.')
+    }
+  } else {
+    throw new TypeError('Unknown message type.')
+  }
 }
 
 const editors: Map<string, WebSocket> = new Map()
@@ -186,11 +231,11 @@ wsApp.ws('/wuss', async (ws, req) => {
   }))
   ws.on('message', async msg => {
     try {
-      const { type, ...data } = JSON.parse(msg.toString())
-      switch (type) {
+      const data = JSON.parse(msg.toString())
+      shouldBeMessage(data)
+      switch (data.type) {
         case 'rearrange': {
-          const changes: Rearrangements[] = data.changes
-          for (const change of changes) {
+          for (const change of data.changes) {
             try {
               switch (change.type) {
                 case 'create': {
@@ -327,13 +372,6 @@ wsApp.ws('/wuss', async (ws, req) => {
           info.name = data.name
           break
         }
-
-        default: {
-          ws.send(JSON.stringify({
-            type: 'error',
-            error: `Unknown message type ${type}`,
-          }))
-        }
       }
     } catch (err) {
       ws.send(JSON.stringify({
@@ -365,7 +403,6 @@ app.get('/connections', (_req, res) => {
 })
 
 app.post('/set-name', (req, res) => {
-  console.log(req.body)
   const { name } = req.body
   if (typeof name === 'string' && name.length < 256 && name.length > 0) {
     if (req.session) {
@@ -379,5 +416,9 @@ app.use(express.static(nodePath.resolve(__dirname, '../build')))
 app.use('/static', express.static(nodePath.resolve(__dirname, './static/')))
 
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`)
+  console.log(`Multiplayer datapack editor available at http://localhost:${port}/`)
+  console.log('')
+  console.log(`Anyone who knows the password as set in your .env file can manipulate the files at ${baseDir} that satisfy ${safeExtensions}`)
+  console.log('')
+  console.log('Tip: do `npm start -- --help` for a list of options.')
 })

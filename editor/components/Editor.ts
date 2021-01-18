@@ -86,6 +86,17 @@ export const Editor: FC<Props> = ({ sync, file, onChangeUnsavedChanges }: Props)
     }
   }, [file])
 
+  const handleSaveRef = useRef<() => void>()
+  useEffect(() => {
+    handleSaveRef.current = () => {
+      if (editing && editorRef.current) {
+        sync.saveFile(file, editorRef.current.getValue())
+        onChangeUnsavedChanges(false)
+        setContent(editorRef.current.getValue())
+      }
+    }
+  }, [editing])
+
   return e(
     Fragment,
     null,
@@ -111,9 +122,8 @@ export const Editor: FC<Props> = ({ sync, file, onChangeUnsavedChanges }: Props)
               contextMenuGroupId: 'datapack',
               contextMenuOrder: 2,
               run: () => {
-                if (editing) {
-                  sync.saveFile(file, editor.getValue())
-                  onChangeUnsavedChanges(false)
+                if (handleSaveRef.current) {
+                  handleSaveRef.current()
                 }
               }
             })
