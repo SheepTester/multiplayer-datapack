@@ -55,7 +55,6 @@ async function scanFiles (scanPath: string, relPath: string = ''): Promise<(File
 }
 
 let filePaths = scanFiles(baseDir)
-  .catch(() => [])
 
 if (debugSrc) {
   const url = debugSrc
@@ -300,7 +299,8 @@ wsApp.ws('/wuss', async (ws, req) => {
             ws.send(JSON.stringify({
               type: 'file-content',
               key: data.key,
-              content: await fs.readFile(nodePath.resolve(baseDir, data.key), 'utf8'),
+              content: await fs.readFile(nodePath.resolve(baseDir, data.key), 'utf8')
+                .catch(() => ''),
               editing,
             }))
           } else {

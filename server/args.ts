@@ -1,4 +1,5 @@
 import minimist from 'minimist'
+import fs from 'fs-extra'
 
 const {
   port: portString = '8080',
@@ -33,6 +34,8 @@ if (help) {
   console.log('--help (-h)\n\tShow help and exit')
   process.exit()
 }
+
+fs.ensureDir(base)
 
 export const port: number = +portString
 export const baseDir: string = base
