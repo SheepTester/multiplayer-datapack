@@ -55,6 +55,7 @@ async function scanFiles (scanPath: string, relPath: string = ''): Promise<(File
 }
 
 let filePaths = scanFiles(baseDir)
+  .catch(() => [])
 
 if (debugSrc) {
   const url = debugSrc

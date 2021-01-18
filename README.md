@@ -14,9 +14,9 @@ git clone https://github.com/SheepTester/multiplayer-datapack.git
 cd multiplayer-datapack
 npm install --global ts-node
 npm install
-curl "https://github.com/SheepTester/multiplayer-datapack/releases/download/v1.0.1/build.zip" -L > build.zip
+curl "https://github.com/SheepTester/multiplayer-datapack/releases/download/v1.0.2/build.zip" -L > build.zip
 unzip build.zip -d build
-echo "PASSWORD=wow a password" > .env
+echo "PASSWORD=your password here" > .env
 npm start -- -b path/to/datapack
 ```
 
@@ -73,8 +73,8 @@ It should be fairly simple to update to the latest version. TL;DR:
 ```sh
 git pull
 npm install
-curl "https://github.com/SheepTester/multiplayer-datapack/releases/download/v1.0.1/build.zip" -L > build.zip
-unzip build.zip -d build
+curl "https://github.com/SheepTester/multiplayer-datapack/releases/download/v1.0.2/build.zip" -L > build.zip
+unzip -o build.zip -d build
 npm start -- -b path/to/datapack
 ```
 
@@ -90,7 +90,7 @@ npm install
 
 # Download and unzip the editor. You might be able to do that with these
 # commands:
-curl "https://github.com/SheepTester/multiplayer-datapack/releases/download/v1.0.1/build.zip" -L > build.zip
+curl "https://github.com/SheepTester/multiplayer-datapack/releases/download/v1.0.2/build.zip" -L > build.zip
 unzip build.zip -d build
 
 # Start the server
