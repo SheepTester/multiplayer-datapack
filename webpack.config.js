@@ -6,7 +6,7 @@ const production = process.env.NODE_ENV === 'production'
 
 module.exports = {
   mode: production ? 'production' : 'development',
-  devtool: production ? 'source-map' : 'inline-source-map',
+  devtool: production ? 'source-map' : 'eval',
   entry: './editor/index.ts',
   output: {
     path: path.resolve(__dirname, 'build'),
@@ -41,7 +41,7 @@ module.exports = {
   },
   plugins: [
     new MonacoWebpackPlugin({
-      languages: ['json'],
+      languages: ['json', 'markdown'],
     }),
   ],
 }

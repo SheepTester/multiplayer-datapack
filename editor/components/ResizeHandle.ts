@@ -14,7 +14,7 @@ interface Props {
 export const ResizeHandle: FC<Props> = ({ onResize, direction = 'both' }: Props) => {
   const [pointerId, setPointerId] = useState<number | null>(null)
   const [mousePos, setMousePos] = useState<Position | null>(null)
-  const pointerEnd = (e: PointerEvent) => {
+  const pointerEnd = (e: PointerEvent): void => {
     if (pointerId === e.pointerId) {
       if (mousePos !== null) {
         onResize(mousePos, true)
@@ -55,12 +55,14 @@ export const ResizeHandle: FC<Props> = ({ onResize, direction = 'both' }: Props)
       'div',
       {
         className: 'resize-handle',
-        style: mousePos && {
-          position: 'fixed',
-          left: direction !== 'vertical' && mousePos.x + 'px',
-          top: direction !== 'horizontal' && mousePos.y + 'px',
-        },
-      }
+        style: mousePos !== null
+          ? {
+            position: 'fixed',
+            left: direction !== 'vertical' && `${mousePos.x}px`,
+            top: direction !== 'horizontal' && `${mousePos.y}px`,
+          }
+          : {},
+      },
     ),
   )
 }

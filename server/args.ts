@@ -4,7 +4,7 @@ import fs from 'fs-extra'
 const {
   port: portString = '8080',
   base = './data/',
-  extensions = '.mcfunction,.json,.mcmeta',
+  extensions = '.mcfunction,.json,.mcmeta,.txt,.md',
   debug = null,
   help = false,
 } = minimist(process.argv.slice(2), {
@@ -25,7 +25,7 @@ const {
   },
 })
 
-if (help) {
+if (help as boolean) {
   console.log('npm start -- [options]')
   console.log('Options:')
   console.log('--port <port> (-p <port>)\n\tSets the port for the server. (Default: 8080)')
@@ -40,7 +40,7 @@ fs.ensureDirSync(base)
 export const port: number = +portString
 export const baseDir: string = base
 export const safeExtensions: RegExp = new RegExp(`(${
-  extensions
+  (extensions as string)
     .replace(/\./g, '\\.')
     .replace(/,/g, '|')
 })$`)

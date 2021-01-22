@@ -1,13 +1,13 @@
 export type Rearrangement = {
-  type: 'create',
-  key: string,
+  type: 'create'
+  key: string
 } | {
-  type: 'move',
-  oldKey: string,
-  newKey: string,
+  type: 'move'
+  oldKey: string
+  newKey: string
 } | {
-  type: 'delete',
-  key: string,
+  type: 'delete'
+  key: string
 }
 export function isRearrangement (value: any): value is Rearrangement {
   if (value === null || typeof value !== 'object') return false

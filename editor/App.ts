@@ -22,17 +22,17 @@ export const App: FC = () => {
   const syncRef = useRef<Sync>()
   // https://reactjs.org/docs/hooks-faq.html#how-to-create-expensive-objects-lazily
   function getSync (): Sync {
-    if (!syncRef.current) {
+    if (syncRef.current === undefined) {
       syncRef.current = new Sync()
     }
     return syncRef.current
   }
   useEffect(() => {
     const sync = getSync()
-    const handleName = (name: string) => {
+    const handleName = (name: string): void => {
       setName(name)
     }
-    const handleClose = (err: boolean) => {
+    const handleClose = (err: boolean): void => {
       setClosed(err ? 'error' : 'closed')
     }
     sync.on('name', handleName)
@@ -44,9 +44,9 @@ export const App: FC = () => {
     }
   }, [])
 
-  const anyUnsaved: boolean = !!viewing.find(file => file.unsavedChanges)
+  const anyUnsaved: boolean = viewing.find(file => file.unsavedChanges) !== undefined
   useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent): void => {
       if (anyUnsaved) {
         e.preventDefault()
         e.returnValue = ''
@@ -61,7 +61,7 @@ export const App: FC = () => {
   // React annoyingly does not have an actual change event
   // https://github.com/facebook/react/issues/3964
   const inputRef = useCallback((inputNode: HTMLInputElement) => {
-    const handleChange = () => {
+    const handleChange = (): void => {
       getSync().setName(inputNode.value)
       fetch('/set-name', {
         method: 'POST',
@@ -71,10 +71,12 @@ export const App: FC = () => {
         body: JSON.stringify({
           name: inputNode.value,
         }),
-      })
+      }).catch(console.error)
     }
     inputNode.addEventListener('change', handleChange)
-    // TODO: Bother cleaning up the event?
+    return () => {
+      inputNode.removeEventListener('change', handleChange)
+    }
   }, [])
 
   return e(
@@ -85,10 +87,10 @@ export const App: FC = () => {
       {
         className: 'sidebar',
         style: {
-          width: fileListWidth + 'px',
+          width: `${fileListWidth}px`,
         },
       },
-      closed && e(
+      closed !== null && e(
         'div',
         {
           className: classNames('connection-closed', closed === 'error' && 'connection-error'),
@@ -102,8 +104,8 @@ export const App: FC = () => {
         {
           sync: getSync(),
           onOpen ({ key }) {
-            if (!viewing.find(file => file.key === key)) {
-              if (viewing.length) {
+            if (viewing.find(file => file.key === key) === undefined) {
+              if (viewing.length > 0) {
                 setViewing([
                   ...viewing.slice(0, tabIndex + 1),
                   { key, unsavedChanges: false },
@@ -147,76 +149,78 @@ export const App: FC = () => {
         },
       },
     ),
-    viewing.length ? e(
-      Tabs,
-      {
-        className: 'editors',
-        selectedIndex: tabIndex,
-        onSelect (index) {
-          setTabIndex(index)
-        },
-      },
-      e(
-        TabList,
+    viewing.length > 0
+      ? e(
+        Tabs,
         {
-          className: 'editor-tabs',
-        },
-        viewing.map(({ key, unsavedChanges }) => e(
-          Tab,
-          {
-            key,
-            className: 'editor-tab',
-            selectedClassName: 'editor-tab-selected',
+          className: 'editors',
+          selectedIndex: tabIndex,
+          onSelect (index) {
+            setTabIndex(index)
           },
-          key,
-          e(
-            'span',
-            {
-              style: {
-                display: unsavedChanges ? null : 'none',
-              },
-            },
-            '*'
-          ),
-          e(
-            'button',
-            {
-              className: 'tab-close-btn',
-              onClick (e: MouseEvent) {
-                e.stopPropagation()
-                if (unsavedChanges && !confirm('You have unsaved changes. Close file?')) return
-                setViewing(viewing.filter(file => file.key !== key))
-                if (tabIndex === viewing.length - 1) {
-                  setTabIndex(viewing.length - 2)
-                }
-              },
-            },
-            '×',
-          ),
-        )),
-      ),
-      viewing.map(({ key }) => e(
-        TabPanel,
-        {
-          key,
-          className: 'editor-tab-content',
-          selectedClassName: 'editor-tab-content-showing',
-          forceRender: true,
         },
         e(
-          Editor,
+          TabList,
           {
-            sync: getSync(),
-            file: key,
-            onChangeUnsavedChanges (unsavedChanges) {
-              setViewing(viewing.map(file =>
-                file.key === key
-                  ? { ...file, unsavedChanges }
-                  : file))
-            }
+            className: 'editor-tabs',
           },
-        )
-      )),
-    ) : e(IntroEditor),
+          viewing.map(({ key, unsavedChanges }) => e(
+            Tab,
+            {
+              key,
+              className: 'editor-tab',
+              selectedClassName: 'editor-tab-selected',
+            },
+            key,
+            e(
+              'span',
+              {
+                style: {
+                  display: unsavedChanges ? null : 'none',
+                },
+              },
+              '*',
+            ),
+            e(
+              'button',
+              {
+                className: 'tab-close-btn',
+                onClick (e: MouseEvent) {
+                  e.stopPropagation()
+                  if (unsavedChanges && !confirm('You have unsaved changes. Close file?')) return
+                  setViewing(viewing.filter(file => file.key !== key))
+                  if (tabIndex === viewing.length - 1) {
+                    setTabIndex(viewing.length - 2)
+                  }
+                },
+              },
+              '×',
+            ),
+          )),
+        ),
+        viewing.map(({ key }) => e(
+          TabPanel,
+          {
+            key,
+            className: 'editor-tab-content',
+            selectedClassName: 'editor-tab-content-showing',
+            forceRender: true,
+          },
+          e(
+            Editor,
+            {
+              sync: getSync(),
+              file: key,
+              onChangeUnsavedChanges (unsavedChanges) {
+                setViewing(viewing.map(file =>
+                  file.key === key
+                    ? { ...file, unsavedChanges }
+                    : file))
+              },
+            },
+          ),
+        )),
+      )
+      : e(IntroEditor),
   )
 }
