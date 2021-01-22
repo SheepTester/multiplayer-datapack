@@ -1,6 +1,9 @@
 export function notNull<T> (value: T | null | undefined): T {
-  if (value === null || value === undefined) {
-    throw new Error(`Expected ${value} to not be null.`)
+  if (value === null) {
+    throw new Error('Value is null.')
+  }
+  if (value === undefined) {
+    throw new Error('Value is null.')
   }
   return value
 }

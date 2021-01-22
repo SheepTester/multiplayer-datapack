@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "rimraf build && NODE_ENV=production webpack",
-    "lint": "eslint **/*.ts --color",
+    "lint": "eslint **/*.ts --color --fix",
     "serve": "webpack serve",
     "start": "ts-node server/index.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -60,7 +60,6 @@
     "dotenv": "^8.2.0",
     "ejs": "^3.1.5",
     "express": "^4.17.1",
-    "express-async-handler": "^1.1.4",
     "express-ws": "^4.0.0",
     "fs-extra": "^9.0.1",
     "minimist": "^1.2.5",

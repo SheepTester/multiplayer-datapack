@@ -11,10 +11,10 @@ function getLanguage (fileName: string): string {
   return fileName.endsWith('.json') || fileName.endsWith('.mcmeta')
     ? 'json'
     : fileName.endsWith('.mcfunction')
-    ? 'mcfunction'
-    : fileName.endsWith('.md')
-    ? 'markdown'
-    : 'plaintext'
+      ? 'mcfunction'
+      : fileName.endsWith('.md')
+        ? 'markdown'
+        : 'plaintext'
 }
 
 const editorOptions: monaco.editor.IStandaloneEditorConstructionOptions = {
@@ -71,12 +71,12 @@ export const Editor: FC<Props> = ({ sync, file, onChangeUnsavedChanges }: Props)
   }, [handleFileContent])
 
   useEffect(() => {
-    const handleNowEditor = (key: string) => {
+    const handleNowEditor = (key: string): void => {
       if (key === file) {
         setEditing(true)
       }
     }
-    const handleNotEditor = (key: string) => {
+    const handleNotEditor = (key: string): void => {
       if (key === file) {
         setEditing(false)
       }
@@ -94,7 +94,7 @@ export const Editor: FC<Props> = ({ sync, file, onChangeUnsavedChanges }: Props)
   const handleSaveRef = useRef<() => void>()
   useEffect(() => {
     handleSaveRef.current = () => {
-      if (editing && editorRef.current) {
+      if (editing && editorRef.current !== undefined) {
         sync.saveFile(file, editorRef.current.getValue())
         onChangeUnsavedChanges(false)
         setContent(editorRef.current.getValue())
@@ -127,10 +127,10 @@ export const Editor: FC<Props> = ({ sync, file, onChangeUnsavedChanges }: Props)
               contextMenuGroupId: 'datapack',
               contextMenuOrder: 2,
               run: () => {
-                if (handleSaveRef.current) {
+                if (handleSaveRef.current !== undefined) {
                   handleSaveRef.current()
                 }
-              }
+              },
             })
           },
           onChange (value) {
@@ -143,40 +143,44 @@ export const Editor: FC<Props> = ({ sync, file, onChangeUnsavedChanges }: Props)
     e(
       'div',
       { className: 'file-notice' },
-      !valid ? e(
-        'span',
-        { className: 'invalid-file' },
-        'You are not allowed to edit this file.',
-      ) : !editing ? e(
-        'span',
-        null,
-        'You currently aren\'t the editor of this file.',
-        e(
-          'button',
-          {
-            className: 'file-notice-btn',
-            onClick () {
-              sync.claimEdit(file)
-            },
-          },
-          'Claim editor',
-        ),
-      ) : e(
-        'span',
-        null,
-        'You\'re the sole editor of this file.',
-        e(
-          'button',
-          {
-            className: 'file-notice-btn',
-            onClick () {
-              sync.unclaimEdit(file)
-            },
-            title: 'Unclaim editor role',
-          },
-          'Abdicate throne',
-        ),
-      ),
+      !valid
+        ? e(
+          'span',
+          { className: 'invalid-file' },
+          'You are not allowed to edit this file.',
+        )
+        : !editing
+          ? e(
+            'span',
+            null,
+            'You currently aren\'t the editor of this file.',
+            e(
+              'button',
+              {
+                className: 'file-notice-btn',
+                onClick () {
+                  sync.claimEdit(file)
+                },
+              },
+              'Claim editor',
+            ),
+          )
+          : e(
+            'span',
+            null,
+            'You\'re the sole editor of this file.',
+            e(
+              'button',
+              {
+                className: 'file-notice-btn',
+                onClick () {
+                  sync.unclaimEdit(file)
+                },
+                title: 'Unclaim editor role',
+              },
+              'Abdicate throne',
+            ),
+          ),
       value !== content && e(
         'button',
         {

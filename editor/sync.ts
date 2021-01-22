@@ -33,7 +33,7 @@ export class Sync extends TypedEmitter<SyncEvents> {
     })
   }
 
-  onMessage (e: MessageEvent<any>) {
+  onMessage (e: MessageEvent<any>): void {
     const { type, ...data } = JSON.parse(e.data)
     switch (type) {
       case 'files': {
@@ -62,71 +62,71 @@ export class Sync extends TypedEmitter<SyncEvents> {
     }
   }
 
-  rearrangeFiles (changes: Rearrangement[]) {
+  rearrangeFiles (changes: Rearrangement[]): void {
     this.open.then(() => {
       this.ws.send(JSON.stringify({
         type: 'rearrange',
         changes,
       }))
-    })
+    }).catch(console.error)
   }
 
-  subscribeToFile (key: string) {
+  subscribeToFile (key: string): void {
     this.open.then(() => {
       this.ws.send(JSON.stringify({
         type: 'open',
         key,
       }))
-    })
+    }).catch(console.error)
   }
 
-  unsubscribeFromFile (key: string) {
+  unsubscribeFromFile (key: string): void {
     this.open.then(() => {
       this.ws.send(JSON.stringify({
         type: 'close',
         key,
       }))
-    })
+    }).catch(console.error)
   }
 
-  claimEdit (key: string) {
+  claimEdit (key: string): void {
     this.open.then(() => {
       this.ws.send(JSON.stringify({
         type: 'claim-edit',
         key,
       }))
-    })
+    }).catch(console.error)
   }
 
-  unclaimEdit (key: string) {
+  unclaimEdit (key: string): void {
     this.open.then(() => {
       this.ws.send(JSON.stringify({
         type: 'unclaim-edit',
         key,
       }))
-    })
+    }).catch(console.error)
   }
 
-  saveFile (key: string, content: string) {
+  saveFile (key: string, content: string): void {
     this.open.then(() => {
       this.ws.send(JSON.stringify({
         type: 'save',
         key,
         content,
       }))
-    })
+    }).catch(console.error)
   }
 
-  setName (name: string) {
+  setName (name: string): void {
     this.open.then(() => {
       this.ws.send(JSON.stringify({
         type: 'name',
         name,
       }))
-    })
+    }).catch(console.error)
   }
 
-  close () {
+  close (): void {
     this.ws.close()
   }
 }

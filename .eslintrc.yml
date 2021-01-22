@@ -12,3 +12,8 @@ rules:
   comma-dangle:
     - error
     - always-multiline
+  "@typescript-eslint/no-base-to-string":
+    - error
+    - ignoredTypeNames:
+      - RegExp
+      - Data

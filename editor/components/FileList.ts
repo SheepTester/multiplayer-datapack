@@ -14,7 +14,7 @@ export const FileList: FC<Props> = ({ sync, onOpen }: Props) => {
   const [files, setFiles] = useState<FileBrowserFile[]>([])
 
   useEffect(() => {
-    const onFiles = (files: FileBrowserFile[]) => {
+    const onFiles = (files: FileBrowserFile[]): void => {
       setFiles(files)
     }
     sync.on('files', onFiles)
@@ -23,9 +23,9 @@ export const FileList: FC<Props> = ({ sync, onOpen }: Props) => {
     }
   }, [])
 
-  const handleRenameFile = (oldKey: string, newKey: string) => {
+  const handleRenameFile = (oldKey: string, newKey: string): void => {
     // Prevent renaming to existing file name
-    if (!files.find(file => file.key === newKey)) {
+    if (files.find(file => file.key === newKey) !== undefined) {
       setFiles(files
         .map(file => file.key === oldKey
           ? { ...file, key: newKey }
@@ -33,9 +33,9 @@ export const FileList: FC<Props> = ({ sync, onOpen }: Props) => {
       sync.rearrangeFiles([{ type: 'move', oldKey, newKey }])
     }
   }
-  const handleRenameFolder = (oldKey: string, newKey: string) => {
+  const handleRenameFolder = (oldKey: string, newKey: string): void => {
     // Prevent folder move if folder already exists
-    if (!files.find(file => file.key === newKey)) {
+    if (files.find(file => file.key === newKey) !== undefined) {
       setFiles(files
         .map(file => file.key.startsWith(oldKey)
           ? { ...file, key: file.key.replace(oldKey, newKey) }
@@ -100,17 +100,17 @@ export const FileList: FC<Props> = ({ sync, onOpen }: Props) => {
       {
         className: 'create-file',
         onClick () {
-          let name = 'new_file.mcfunction', i = 1
-          while (files.find(file => file.key === name)) {
+          let name = 'new_file.mcfunction'; let i = 1
+          while (files.find(file => file.key === name) !== undefined) {
             i++
             name = `new_file_${i}.mcfunction`
           }
           setFiles([...files, { key: name, size: 0, modified: Date.now() }])
           sync.rearrangeFiles([{ type: 'create', key: name }])
-        }
+        },
       },
       e('i', { className: 'codicon codicon-new-file', 'aria-hidden': true }),
       ' Create file',
-    )
+    ),
   )
 }

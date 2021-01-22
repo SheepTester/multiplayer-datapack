@@ -1,8 +1,8 @@
 // https://github.com/uptick/react-keyed-file-browser/pull/105/files
-declare module 'react-keyed-file-browser'
+import * as React from 'react'
+import { DragDropMonitor } from 'react-dnd'
 
-import * as React from "react"
-import { DragDropMonitor } from "react-dnd"
+declare module 'react-keyed-file-browser'
 
 export interface FileBrowserFile {
   key: string
@@ -21,23 +21,23 @@ export interface FileProps {
   browserProps: RendererBrowserProps
 }
 
-//#region details
+// #region details
 declare class DefaultDetail extends React.Component<DetailRendererProps> {}
 export declare const Details: {
   DefaultDetail: DefaultDetail
 }
-//#endregion details
+// #endregion details
 
-//#region filters
+// #region filters
 declare class DefaultFilter extends React.Component<FilterRendererProps> {}
 export declare const Filters: {
   DefaultFilter: DefaultFilter
 }
-//#endregion filters
+// #endregion filters
 
 type FileBrowserFileOrDraft =
   | FileBrowserFile
-  | { key: string; size: 0; draft: true }
+  | { key: string, size: 0, draft: true }
 
 type FileBrowserTreeFileNode = FileBrowserFile & { keyDerived?: true }
 type FileBrowserTreeGroupNode = FileBrowserFileOrDraft & {
@@ -45,12 +45,10 @@ type FileBrowserTreeGroupNode = FileBrowserFileOrDraft & {
   relativeKey: string
   children: FileBrowserTree
 }
-export type FileBrowserTree = (
-  | FileBrowserTreeFileNode
-  | FileBrowserTreeGroupNode
-)[]
+export type FileBrowserTree = Array<| FileBrowserTreeFileNode
+| FileBrowserTreeGroupNode>
 
-//#region groupers
+// #region groupers
 export type Grouper = (
   files: FileBrowserFileOrDraft[],
   root: string
@@ -60,9 +58,9 @@ export declare const Groupers: {
   GroupByFolder: Grouper
   GroupByModifiedRelative: Grouper
 }
-//#endregion groupers
+// #endregion groupers
 
-//#region sorters
+// #region sorters
 export type Sorter = (
   files: FileBrowserTree[],
   root: string
@@ -72,9 +70,9 @@ export declare const Sorters: {
   SortByName: Sorter
   SortByModified: Sorter
 }
-//#endregion sorters
+// #endregion sorters
 
-//#region icons
+// #region icons
 interface IconsProp {
   File?: JSX.Element
   Image?: JSX.Element
@@ -97,9 +95,9 @@ interface IconsProp {
 export declare const Icons: {
   FontAwesome: (version: 4 | 5) => IconsProp
 }
-//#endregion icons
+// #endregion icons
 
-//#region utils
+// #region utils
 export declare const Utils: {
   isFolder: (file: FileBrowserFile) => boolean
   moveFilesAndFolders: (
@@ -108,9 +106,9 @@ export declare const Utils: {
     component: any
   ) => void
 }
-//#endregion utils
+// #endregion utils
 
-//#region handlers
+// #region handlers
 type CreateFilesHandler = (files: File[], prefix: string) => void
 type CreateFolderHandler = (key: string) => void
 type MoveFileHandler = (oldFileKey: string, newFileKey: string) => void
@@ -120,13 +118,13 @@ type RenameFolderHandler = (oldFolderKey: string, newFolderKey: string) => void
 type DeleteFileHandler = (fileKeys: string[]) => void
 type DeleteFolderHandler = (folderKeys: string[]) => void
 type DownloadFileHandler = (keys: string[]) => void
-//#endregion handlers
+// #endregion handlers
 
-//#region renderers
+// #region renderers
 
 // Header
 export type HeaderRendererProps<P = {}> = {
-  fileKey: ""
+  fileKey: ''
   fileCount: number
   browserProps: RendererBrowserProps
 } & P
@@ -147,18 +145,18 @@ export type FilterRenderer<P = {}> = (
 
 // File and Folder
 export type FolderAndFileRendererProps<P = {}> = ItemProps &
-  P & {
-    browserProps: RendererBrowserProps
-    depth: number
-  }
+P & {
+  browserProps: RendererBrowserProps
+  depth: number
+}
 
 export type FileRendererProps<P = {}> = FileBrowserTreeFileNode &
-  FolderAndFileRendererProps<P>
+FolderAndFileRendererProps<P>
 
 export type FileRenderer<P = {}> = (props: FileRendererProps<P>) => JSX.Element
 
 export type FolderRendererProps<P = {}> = FileBrowserTreeGroupNode &
-  FolderAndFileRendererProps<P>
+FolderAndFileRendererProps<P>
 
 export type FolderRenderer<P = {}> = (
   props: FolderRendererProps<P>
@@ -230,10 +228,10 @@ export type ConfirmMultipleDeletionRenderer = (
   props: ConfirmMultipleDeletionRendererProps
 ) => JSX.Element
 
-//#endregion renderers
+// #endregion renderers
 
-//#region renderer-browser-props
-export type ActionType = "rename" | "delete" | "createFolder"
+// #region renderer-browser-props
+export type ActionType = 'rename' | 'delete' | 'createFolder'
 
 export interface ItemProps {
   key: string
@@ -291,9 +289,9 @@ export interface RendererBrowserProps {
     browserProps: RendererBrowserProps
   ) => ItemProps
 }
-//#endregion renderer-browser-props
+// #endregion renderer-browser-props
 
-//#region file-browser-props
+// #region file-browser-props
 export interface FileBrowserProps {
   files: FileBrowserFile[]
   actions?: JSX.Element
@@ -307,7 +305,7 @@ export interface FileBrowserProps {
   icons?: IconsProp
 
   nestChildren?: boolean
-  renderStyle?: "list" | "table"
+  renderStyle?: 'list' | 'table'
 
   startOpen?: boolean
 
@@ -345,7 +343,7 @@ export interface FileBrowserProps {
   onFolderOpen?: (folder: FileBrowserFolder) => void
   onFolderClose?: (folder: FileBrowserFolder) => void
 }
-//#endregion file-browser-props
+// #endregion file-browser-props
 
 declare class FileBrowser extends React.Component<FileBrowserProps> {}
 export default FileBrowser

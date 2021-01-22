@@ -1,6 +1,14 @@
 import * as monaco from 'monaco-editor'
 
-export const tokens = <monaco.languages.IMonarchLanguage> {
+interface MyTokens {
+  values: string[]
+  keywords: string[]
+  relevantSymbols: string[]
+  symbols: RegExp
+  escapes: RegExp
+}
+
+export const tokens: monaco.languages.IMonarchLanguage & MyTokens = {
   values: [
     'true', 'false',
   ],
@@ -60,7 +68,7 @@ export const tokens = <monaco.languages.IMonarchLanguage> {
     '=', ':', ',',
   ],
 
-  symbols:  /[=><!~?:&|+*\/\^%]+/,
+  symbols: /[=><!~?:&|+*/^%]+/,
 
   escapes: /\\(?:[abfnrtv\\"']|x[0-9A-Fa-f]{1,4}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8})/,
 
@@ -70,8 +78,8 @@ export const tokens = <monaco.languages.IMonarchLanguage> {
         cases: {
           '@values': 'variable.predefined',
           '@keywords': 'keyword',
-          '@default': 'identifier'
-        }
+          '@default': 'identifier',
+        },
       }],
 
       // whitespace
@@ -79,35 +87,35 @@ export const tokens = <monaco.languages.IMonarchLanguage> {
 
       // numbers
       [/-?\d+\.\.|(?:-?\d+)?\.\.-?\d+/, 'number.hex'],
-      [/-?\d*\.\d+([eE][\-+]?\d+)?[fd]?/, 'number.float'],
+      [/-?\d*\.\d+([eE][-+]?\d+)?[fd]?/, 'number.float'],
       [/-?\d+[bslfd]?/, 'number'],
 
       [/@[aerps]/, 'attribute.name'],
 
       // delimiters and operators
-      [/[{}()\[\]]/, '@brackets'],
+      [/[{}()[\]]/, '@brackets'],
       [/@symbols/, {
         cases: {
           '@relevantSymbols': 'operator.sql',
-          '@default': ''
-        }
+          '@default': '',
+        },
       }],
 
       // strings
-      [/"([^"\\]|\\.)*$/, 'string.invalid' ],
-      [/"/, { token: 'string.quote', bracket: '@open', next: '@string' } ],
+      [/"([^"\\]|\\.)*$/, 'string.invalid'],
+      [/"/, { token: 'string.quote', bracket: '@open', next: '@string' }],
 
       // characters
       [/'[^\\']'/, 'string'],
       [/(')(@escapes)(')/, ['string', 'string.escape', 'string']],
-      [/'/, 'string.invalid']
+      [/'/, 'string.invalid'],
     ],
 
     string: [
       [/[^\\"]+/, 'string'],
       [/@escapes/, 'string.escape'],
       [/\\./, 'string.escape.invalid'],
-      [/"/, { token: 'string.quote', bracket: '@close', next: '@pop' } ]
+      [/"/, { token: 'string.quote', bracket: '@close', next: '@pop' }],
     ],
 
     whitespace: [

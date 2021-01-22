@@ -25,7 +25,7 @@ const {
   },
 })
 
-if (help) {
+if (help as boolean) {
   console.log('npm start -- [options]')
   console.log('Options:')
   console.log('--port <port> (-p <port>)\n\tSets the port for the server. (Default: 8080)')
@@ -40,7 +40,7 @@ fs.ensureDirSync(base)
 export const port: number = +portString
 export const baseDir: string = base
 export const safeExtensions: RegExp = new RegExp(`(${
-  extensions
+  (extensions as string)
     .replace(/\./g, '\\.')
     .replace(/,/g, '|')
 })$`)
