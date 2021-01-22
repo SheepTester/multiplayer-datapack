@@ -3,11 +3,15 @@
 # parser: babel-eslint
 parserOptions:
   project: ./tsconfig.json
+  ecmaFeatures:
+    jsx: false
 extends:
   - standard
   # - standard-jsx
   - standard-react
   - standard-with-typescript
+  - plugin:react/recommended
+  - plugin:react-hooks/recommended
 rules:
   comma-dangle:
     - error

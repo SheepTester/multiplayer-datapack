@@ -21,7 +21,7 @@ export const FileList: FC<Props> = ({ sync, onOpen }: Props) => {
     return () => {
       sync.off('files', onFiles)
     }
-  }, [])
+  }, [sync])
 
   const handleRenameFile = (oldKey: string, newKey: string): void => {
     // Prevent renaming to existing file name

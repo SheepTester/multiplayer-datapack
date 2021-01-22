@@ -74,7 +74,9 @@ export const App: FC = () => {
       }).catch(console.error)
     }
     inputNode.addEventListener('change', handleChange)
-    // TODO: Bother cleaning up the event?
+    return () => {
+      inputNode.removeEventListener('change', handleChange)
+    }
   }, [])
 
   return e(
@@ -88,7 +90,7 @@ export const App: FC = () => {
           width: `${fileListWidth}px`,
         },
       },
-      closed === null && e(
+      closed !== null && e(
         'div',
         {
           className: classNames('connection-closed', closed === 'error' && 'connection-error'),
@@ -102,7 +104,7 @@ export const App: FC = () => {
         {
           sync: getSync(),
           onOpen ({ key }) {
-            if (viewing.find(file => file.key === key) !== undefined) {
+            if (viewing.find(file => file.key === key) === undefined) {
               if (viewing.length > 0) {
                 setViewing([
                   ...viewing.slice(0, tabIndex + 1),
@@ -210,6 +212,7 @@ export const App: FC = () => {
               sync: getSync(),
               file: key,
               onChangeUnsavedChanges (unsavedChanges) {
+                console.log({ viewing, key, unsavedChanges })
                 setViewing(viewing.map(file =>
                   file.key === key
                     ? { ...file, unsavedChanges }

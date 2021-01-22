@@ -61,14 +61,14 @@ export const Editor: FC<Props> = ({ sync, file, onChangeUnsavedChanges }: Props)
       setValid(false)
     }
     setEditing(editing)
-  }, [content])
+  }, [file, content])
 
   useEffect(() => {
     sync.on('file-content', handleFileContent)
     return () => {
       sync.off('file-content', handleFileContent)
     }
-  }, [handleFileContent])
+  }, [sync, handleFileContent])
 
   useEffect(() => {
     const handleNowEditor = (key: string): void => {
@@ -89,7 +89,7 @@ export const Editor: FC<Props> = ({ sync, file, onChangeUnsavedChanges }: Props)
       sync.off('not-editor', handleNotEditor)
       sync.unsubscribeFromFile(file)
     }
-  }, [file])
+  }, [sync, file])
 
   const handleSaveRef = useRef<() => void>()
   useEffect(() => {
@@ -100,7 +100,7 @@ export const Editor: FC<Props> = ({ sync, file, onChangeUnsavedChanges }: Props)
         setContent(editorRef.current.getValue())
       }
     }
-  }, [editing])
+  }, [sync, file, onChangeUnsavedChanges, editing])
 
   return e(
     Fragment,
