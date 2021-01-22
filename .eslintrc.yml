@@ -1,0 +1,14 @@
+# https://github.com/standard/eslint-config-standard-with-typescript
+# https://github.com/standard/eslint-config-standard-react
+# parser: babel-eslint
+parserOptions:
+  project: ./tsconfig.json
+extends:
+  - standard
+  # - standard-jsx
+  - standard-react
+  - standard-with-typescript
+rules:
+  comma-dangle:
+    - error
+    - always-multiline

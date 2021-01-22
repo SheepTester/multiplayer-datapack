@@ -3,12 +3,17 @@ import * as monaco from 'monaco-editor'
 import MonacoEditor from 'react-monaco-editor'
 
 import { Sync } from '../sync'
+import { register } from '../mcfunction/index'
+
+register()
 
 function getLanguage (fileName: string): string {
   return fileName.endsWith('.json') || fileName.endsWith('.mcmeta')
     ? 'json'
     : fileName.endsWith('.mcfunction')
     ? 'mcfunction'
+    : fileName.endsWith('.md')
+    ? 'markdown'
     : 'plaintext'
 }
 

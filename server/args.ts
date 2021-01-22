@@ -4,7 +4,7 @@ import fs from 'fs-extra'
 const {
   port: portString = '8080',
   base = './data/',
-  extensions = '.mcfunction,.json,.mcmeta',
+  extensions = '.mcfunction,.json,.mcmeta,.txt,.md',
   debug = null,
   help = false,
 } = minimist(process.argv.slice(2), {
