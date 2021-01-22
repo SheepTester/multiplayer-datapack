@@ -25,7 +25,7 @@ export const FileList: FC<Props> = ({ sync, onOpen }: Props) => {
 
   const handleRenameFile = (oldKey: string, newKey: string): void => {
     // Prevent renaming to existing file name
-    if (files.find(file => file.key === newKey) !== undefined) {
+    if (files.find(file => file.key === newKey) === undefined) {
       setFiles(files
         .map(file => file.key === oldKey
           ? { ...file, key: newKey }
@@ -35,7 +35,7 @@ export const FileList: FC<Props> = ({ sync, onOpen }: Props) => {
   }
   const handleRenameFolder = (oldKey: string, newKey: string): void => {
     // Prevent folder move if folder already exists
-    if (files.find(file => file.key === newKey) !== undefined) {
+    if (files.find(file => file.key === newKey) === undefined) {
       setFiles(files
         .map(file => file.key.startsWith(oldKey)
           ? { ...file, key: file.key.replace(oldKey, newKey) }
@@ -100,7 +100,8 @@ export const FileList: FC<Props> = ({ sync, onOpen }: Props) => {
       {
         className: 'create-file',
         onClick () {
-          let name = 'new_file.mcfunction'; let i = 1
+          let name = 'new_file.mcfunction'
+          let i = 1
           while (files.find(file => file.key === name) !== undefined) {
             i++
             name = `new_file_${i}.mcfunction`

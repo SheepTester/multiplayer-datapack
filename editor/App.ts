@@ -212,7 +212,6 @@ export const App: FC = () => {
               sync: getSync(),
               file: key,
               onChangeUnsavedChanges (unsavedChanges) {
-                console.log({ viewing, key, unsavedChanges })
                 setViewing(viewing.map(file =>
                   file.key === key
                     ? { ...file, unsavedChanges }

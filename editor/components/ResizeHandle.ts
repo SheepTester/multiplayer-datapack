@@ -55,11 +55,13 @@ export const ResizeHandle: FC<Props> = ({ onResize, direction = 'both' }: Props)
       'div',
       {
         className: 'resize-handle',
-        style: mousePos !== null ? {
-          position: 'fixed',
-          left: direction !== 'vertical' && `${mousePos.x}px`,
-          top: direction !== 'horizontal' && `${mousePos.y}px`,
-        } : {},
+        style: mousePos !== null
+          ? {
+            position: 'fixed',
+            left: direction !== 'vertical' && `${mousePos.x}px`,
+            top: direction !== 'horizontal' && `${mousePos.y}px`,
+          }
+          : {},
       },
     ),
   )
